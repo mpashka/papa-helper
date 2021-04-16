@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="debug">
+    <Appenders>
+        <Logcat name="Logcat">
+            <!--ThresholdFilter
+                level="ALL"
+                onMatch="ACCEPT"
+                onMismatch="DENY" /-->
+            <PatternLayout pattern="%p %c [%t] %m" />
+        </Logcat>
+        <!--RollingFile
+            name="RollingFile"
+            fileName="${logsdirpathlookup:internaldir}/com.exapmple.app.log"
+            filePattern="${logsdirpathlookup:internaldir}/com.example.app-%i.log.zip">
+            <ThresholdFilter
+                level="ALL"
+                onMatch="ACCEPT"
+                onMismatch="DENY" />
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="1 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="5" />
+        </RollingFile-->
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.mpashka" level="ALL"/>
+        <Root level="ERROR">
+            <AppenderRef ref="Logcat" />
+            <!--AppenderRef ref="RollingFile" /-->
+        </Root>
+    </Loggers>
+</Configuration>
