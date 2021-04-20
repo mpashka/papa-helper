@@ -10,7 +10,9 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
-        Timber.tag("findme");
+//        Timber.tag("findme");
         Timber.d("Application start. Debug:%s", BuildConfig.DEBUG);
+
+        MyWorkManager.getInstance().scheduleCheck(this);
     }
 }

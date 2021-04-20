@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="restart_check">120</integer>
+
+    <string name="poll_section">Accelerometer</string>
+    <string name="poll_period_id">poll_period_id</string>
+    <string name="poll_period_title">Sensors poll period, sec</string>
+    <integer name="poll_period_default">120</integer>
+    <string name="poll_time_id">poll_time_id</string>
+    <string name="poll_time_title">Sensors poll time, sec</string>
+    <integer name="poll_time_default">5</integer>
+
+    <string name="poll_sampling_id">poll_sampling_id</string>
+    <string name="poll_sampling_title">Sensors sampling</string>
+    <integer name="poll_sampling_default">3</integer>
+    <string-array name="poll_sampling_entries">
+        <item>Fastest</item>
+        <item>Game</item>
+        <item>UI</item>
+        <item>Normal</item>
+        <item>Off</item>
+    </string-array>
+
+    <string-array name="poll_sampling_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>1000</item>
+    </string-array>
+
+    <string name="location_section">Location</string>
+    <string name="location_id">location_id</string>
+    <string name="location_title">Location provider</string>
+    <string name="location_default">network</string>
+    <string-array name="location_entries">
+        <item>Fused</item>
+        <item>GPS</item>
+        <item>Network</item>
+        <item>Passive</item>
+        <item>Off</item>
+    </string-array>
+
+    <string-array name="location_values">
+        <item>fused</item>
+        <item>gps</item>
+        <item>network</item>
+        <item>passive</item>
+    </string-array>
+
+    <string name="location_min_distance_id">location_min_distance_id</string>
+    <string name="location_min_distance_title">Min distance to report notification</string>
+    <item name="location_min_distance_default" type="dimen" format="float">10</item>
+    <string name="location_time_id">location_time_id</string>
+    <string name="location_time_title">Min time to check location</string>
+    <integer name="location_time_default">10</integer>
+
+</resources>

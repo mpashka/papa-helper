@@ -1,35 +1,53 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <PreferenceCategory app:title="@string/messages_header">
+    <PreferenceCategory app:title="@string/poll_section">
 
         <EditTextPreference
-            app:key="signature"
-            app:title="@string/signature_title"
-            app:useSimpleSummaryProvider="true" />
+            app:key="@string/poll_period_id"
+            app:title="@string/poll_period_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/poll_period_default"/>
+
+        <EditTextPreference
+            app:key="@string/poll_time_id"
+            app:title="@string/poll_time_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/poll_time_default"/>
 
         <ListPreference
-            app:defaultValue="reply"
-            app:entries="@array/reply_entries"
-            app:entryValues="@array/reply_values"
-            app:key="reply"
-            app:title="@string/reply_title"
+            app:key="@string/poll_sampling_id"
+            app:defaultValue="@integer/poll_sampling_default"
+            app:entries="@array/poll_sampling_entries"
+            app:entryValues="@array/poll_sampling_values"
+            app:title="@string/poll_sampling_title"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/sync_header">
+    <PreferenceCategory app:title="@string/location_section">
+        <ListPreference
+            app:key="@string/location_id"
+            app:defaultValue="@string/location_default"
+            app:entries="@array/location_entries"
+            app:entryValues="@array/location_values"
+            app:title="@string/location_title"
+            app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
-            app:key="sync"
-            app:title="@string/sync_title" />
+        <EditTextPreference
+            app:key="@string/location_min_distance_id"
+            app:title="@string/location_min_distance_title"
+            android:inputType="numberDecimal"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@dimen/location_min_distance_default"/>
 
-        <SwitchPreferenceCompat
-            app:dependency="sync"
-            app:key="attachment"
-            app:summaryOff="@string/attachment_summary_off"
-            app:summaryOn="@string/attachment_summary_on"
-            app:title="@string/attachment_title" />
-
+        <EditTextPreference
+            app:key="@string/location_time_id"
+            app:title="@string/location_time_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/location_time_default"/>
     </PreferenceCategory>
-
 </PreferenceScreen>
