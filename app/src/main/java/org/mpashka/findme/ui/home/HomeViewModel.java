@@ -1,19 +1,18 @@
 package org.mpashka.findme.ui.home;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 public class HomeViewModel extends ViewModel {
 
-    private MutableLiveData<String> mText;
+    private MutableLiveData<Integer> locations = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> accelerometers = new MutableLiveData<>(0);
 
-    public HomeViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is home fragment");
+    public MutableLiveData<Integer> getLocations() {
+        return locations;
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    public MutableLiveData<Integer> getAccelerometers() {
+        return accelerometers;
     }
 }

@@ -32,7 +32,12 @@
             android:name=".MyLocationService"
             android:directBootAware="true"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="false" />
+        <service
+            android:name=".MyAccelerometerService"
+            android:directBootAware="true"
+            android:enabled="true"
+            android:exported="false" />
 
         <receiver
             android:name=".AutoStarter"

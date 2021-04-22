@@ -1,36 +1,44 @@
 package org.mpashka.findme;
 
+import android.Manifest;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener2;
-import android.hardware.SensorManager;
+import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.widget.Toast;
 
-import java.util.List;
+import java.time.Instant;
 
 import timber.log.Timber;
 
 public class MyLocationService extends Service {
 
     private boolean isRunning = false;
+    private DBHelper dbHelper;
 
     public void onCreate() {
         super.onCreate();
         isRunning = false;
+        Context deviceContext = createDeviceProtectedStorageContext();
+        dbHelper = new DBHelper(deviceContext);
         Timber.d("onCreate");
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         Timber.d("onStartCommand");
-        if (!isRunning || intent.getBooleanExtra(MyWorkManager.SETTINGS_ACTION, false)) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Timber.d("Not enough permissions");
+            Context context = getApplicationContext();
+            Toast.makeText(context, "Not enough permissions", Toast.LENGTH_SHORT).show();
+        } else if (!isRunning || intent.getBooleanExtra(MyWorkManager.SETTINGS_ACTION, false)) {
             startListen();
         } else {
             Timber.d("Service already running");
@@ -39,8 +47,9 @@ public class MyLocationService extends Service {
     }
 
     public void onDestroy() {
-        super.onDestroy();
         stopListen();
+        dbHelper.close();
+        super.onDestroy();
         Timber.d("onDestroy");
     }
 
@@ -53,6 +62,16 @@ public class MyLocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             Timber.d("onLocationChanged %s", location);
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            ContentValues cv = new ContentValues();
+            Instant now = Instant.now();
+            cv.put("time", now.toEpochMilli());
+            cv.put("lat", location.getLatitude());
+            cv.put("long", location.getLongitude());
+            cv.put("accuracy", location.getAccuracy());
+            cv.put("battery", Utils.readChargeLevel(getApplicationContext()));
+            db.insert("location", null, cv);
+            db.close();
         }
 
         @Override
@@ -74,14 +93,13 @@ public class MyLocationService extends Service {
     private void startListen() {
         Timber.d("startListen()");
         isRunning = true;
-        Context deviceContext = createDeviceProtectedStorageContext();
-        SharedPreferences devicePreferences = deviceContext.getSharedPreferences(MyWorkManager.SETTINGS_NAME, Context.MODE_PRIVATE);
+        MyPreferences preferences = new MyPreferences(this);
 
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationManager.removeUpdates(locationListener);
-        String locationProvider = devicePreferences.getString(getString(R.string.location_id), getString(R.string.location_default));
-        int timeSec = devicePreferences.getInt(getString(R.string.location_time_id), getResources().getInteger(R.integer.location_time_default));
-        float minDistance = devicePreferences.getFloat(getString(R.string.location_min_distance_id), getResources().getFloat(R.dimen.location_min_distance_default));
+        String locationProvider = preferences.getString(R.string.location_provider_id, R.string.location_provider_default);
+        int timeSec = preferences.getInt(R.string.location_time_id, R.integer.location_time_default);
+        float minDistance = preferences.getFloat(R.string.location_min_distance_id, R.dimen.location_min_distance_default);
         try {
             locationManager.requestLocationUpdates(locationProvider, 1000 * timeSec, minDistance, locationListener);
         } catch (SecurityException e) {

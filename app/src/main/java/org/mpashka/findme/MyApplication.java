@@ -13,6 +13,6 @@ public class MyApplication extends Application {
 //        Timber.tag("findme");
         Timber.d("Application start. Debug:%s", BuildConfig.DEBUG);
 
-        MyWorkManager.getInstance().scheduleCheck(this);
+        MyWorkManager.getInstance().startServices(this);
     }
 }

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="restart_check">120</integer>
+
+    <string name="system_section">System</string>
+    <string name="restart_check_id">restart_check_id</string>
+    <string name="restart_check_title">Restart check</string>
+    <integer name="restart_check_default">1200</integer>
+
+    <string name="ui_section">UI</string>
+    <string name="ui_check_id">ui_check_id</string>
+    <string name="ui_check_title">UI check</string>
+    <integer name="ui_check_default">10</integer>
 
     <string name="poll_section">Accelerometer</string>
     <string name="poll_period_id">poll_period_id</string>
@@ -30,10 +39,12 @@
     </string-array>
 
     <string name="location_section">Location</string>
-    <string name="location_id">location_id</string>
-    <string name="location_title">Location provider</string>
-    <string name="location_default">network</string>
-    <string-array name="location_entries">
+    <string name="location_provider_id">location_id</string>
+    <string name="location_provider_title">Location provider</string>
+    <string name="location_provider_default">network</string>
+    <string name="location_permission_on">Location permission granted</string>
+    <string name="location_permission_off">Give app location permission</string>
+    <string-array name="location_provider_entries">
         <item>Fused</item>
         <item>GPS</item>
         <item>Network</item>
@@ -41,7 +52,7 @@
         <item>Off</item>
     </string-array>
 
-    <string-array name="location_values">
+    <string-array name="location_provider_values">
         <item>fused</item>
         <item>gps</item>
         <item>network</item>

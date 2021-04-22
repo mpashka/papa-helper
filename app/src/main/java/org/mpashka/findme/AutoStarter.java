@@ -16,6 +16,6 @@ public class AutoStarter extends BroadcastReceiver {
         if (!Intent.ACTION_LOCKED_BOOT_COMPLETED.equals(action)) {
             return;
         }
-        MyWorkManager.getInstance().scheduleCheck(context);
+        MyWorkManager.getInstance().startServices(context);
     }
 }

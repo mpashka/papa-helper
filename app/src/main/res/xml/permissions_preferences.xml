@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <SwitchPreference
+        app:key="@string/location_provider_id"
+        app:title="@string/location_provider_title"
+        app:summaryOn="@string/location_permission_on"
+        app:summaryOff="@string/location_permission_off"
+        />
+</PreferenceScreen>

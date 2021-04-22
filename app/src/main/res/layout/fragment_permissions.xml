@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.permissions.PermissionsFragment">
+    <TextView
+        android:id="@+id/text_permissions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/permissions_name"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        />
+<!--
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.486"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.016"
+-->
+    <!--fragment
+        android:id="@+id/fragment"
+        android:name="org.mpashka.findme.ui.permissions.PermissionsFragment"
+        android:layout_width="122dp"
+        android:layout_height="117dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_gallery" /-->
+
+    <!--FrameLayout
+        android:id="@+id/frgmCont"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </FrameLayout-->
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/permissions_fragment_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </androidx.fragment.app.FragmentContainerView>
+
+    <!--fragment
+        android:id="@+id/fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_gallery" /-->
+
+
+</LinearLayout>

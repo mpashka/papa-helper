@@ -3,12 +3,10 @@ package org.mpashka.findme.ui.settings;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
-import androidx.preference.EditTextPreference;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
-import androidx.work.WorkManager;
 
+import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.MyWorkManager;
 import org.mpashka.findme.R;
 
@@ -19,7 +17,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         PreferenceManager preferenceManager = getPreferenceManager();
         preferenceManager.setStorageDeviceProtected();
-        preferenceManager.setSharedPreferencesName(MyWorkManager.SETTINGS_NAME);
+        preferenceManager.setSharedPreferencesName(MyPreferences.SETTINGS_NAME);
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
     }
 
@@ -37,9 +35,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals(getString(R.string.poll_period_id))) {
-            MyWorkManager.getInstance().rescheduleAccelerometerCheck(getContext());
-        } else if (key.startsWith("location")) {
+        if (key.startsWith("poll_")) {
+            MyWorkManager.getInstance().rescheduleAccelerometerService(getContext());
+        } else if (key.startsWith("location_")) {
             MyWorkManager.getInstance().restartLocationService(getContext());
         }
     }
