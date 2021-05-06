@@ -2,8 +2,10 @@ package org.mpashka.findme;
 
 import android.app.Application;
 
+import dagger.hilt.android.HiltAndroidApp;
 import timber.log.Timber;
 
+@HiltAndroidApp
 public class MyApplication extends Application {
 
     @Override

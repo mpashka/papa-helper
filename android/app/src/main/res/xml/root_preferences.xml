@@ -8,6 +8,13 @@
             android:inputType="number"
             app:useSimpleSummaryProvider="true"
             app:defaultValue="@integer/restart_check_default"/>
+
+        <EditTextPreference
+            app:key="@string/send_id"
+            app:title="@string/send_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/send_default"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui_section">

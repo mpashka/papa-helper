@@ -4,7 +4,10 @@
     <string name="system_section">System</string>
     <string name="restart_check_id">restart_check_id</string>
     <string name="restart_check_title">Restart check</string>
-    <integer name="restart_check_default">1200</integer>
+    <integer name="restart_check_default">12000000</integer>
+    <string name="send_id">send_id</string>
+    <string name="send_title">Send each</string>
+    <integer name="send_default">10</integer>
 
     <string name="ui_section">UI</string>
     <string name="ui_check_id">ui_check_id</string>

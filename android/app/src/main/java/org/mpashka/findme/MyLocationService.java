@@ -1,6 +1,7 @@
 package org.mpashka.findme;
 
 import android.Manifest;
+import android.app.Notification;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,17 +15,27 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
 
+import org.mpashka.findme.db.MyTransmitService;
+
 import java.time.Instant;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
 import timber.log.Timber;
 
+@AndroidEntryPoint
 public class MyLocationService extends Service {
+
+    @Inject
+    MyTransmitService transmitService;
 
     private boolean isRunning = false;
     private DBHelper dbHelper;
 
     public void onCreate() {
         super.onCreate();
+//        startForeground(1,new Notification());
         isRunning = false;
         Context deviceContext = createDeviceProtectedStorageContext();
         dbHelper = new DBHelper(deviceContext);
@@ -72,6 +83,8 @@ public class MyLocationService extends Service {
             cv.put("battery", Utils.readChargeLevel(getApplicationContext()));
             db.insert("location", null, cv);
             db.close();
+
+            transmitService.transmitLocations();
         }
 
         @Override

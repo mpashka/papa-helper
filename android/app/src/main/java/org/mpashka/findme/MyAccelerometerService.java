@@ -1,5 +1,6 @@
 package org.mpashka.findme;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -32,6 +33,7 @@ public class MyAccelerometerService extends Service {
 
     public void onCreate() {
         super.onCreate();
+//        startForeground(1,new Notification());
         Timber.d("onCreate");
         dbHelper = new DBHelper(createDeviceProtectedStorageContext());
         timer = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "AccelerometerTimer"));

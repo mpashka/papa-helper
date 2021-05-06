@@ -70,6 +70,7 @@ public class MyWorkManager {
         workManager.enqueueUniquePeriodicWork(context.getString(R.string.app_id) + RESTART_SERVICE, ExistingPeriodicWorkPolicy.KEEP,
                 new PeriodicWorkRequest.Builder(RestartWorker.class, Duration.of(restartCheckSec, ChronoUnit.SECONDS)).build());
 
+//        context.startForegroundService(new Intent(context, MyLocationService.class));
         context.startService(new Intent(context, MyLocationService.class));
         context.startService(new Intent(context, MyAccelerometerService.class));
     }
