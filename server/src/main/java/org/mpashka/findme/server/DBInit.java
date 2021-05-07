@@ -3,12 +3,17 @@ package org.mpashka.findme.server;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.pgclient.PgPool;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 
 @ApplicationScoped
 public class DBInit {
+
+    private static final Logger log = LoggerFactory.getLogger(DBInit.class);
+
     private final PgPool client;
     private final boolean schemaCreate;
 
@@ -24,8 +29,7 @@ public class DBInit {
     }
 
     private void initdb() {
-        client.query("DROP TABLE IF EXISTS fruits").execute()
-                .flatMap(r -> client.query("CREATE TABLE fruits (id SERIAL PRIMARY KEY, name TEXT NOT NULL)").execute())
-                .await().indefinitely();
+        LocationEntity.init(client);
+        AccelerometerEntity.init(client);
     }
 }

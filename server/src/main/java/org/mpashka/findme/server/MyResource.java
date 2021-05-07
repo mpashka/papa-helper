@@ -1,22 +1,53 @@
 package org.mpashka.findme.server;
 
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.pgclient.PgPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @Path("/findme")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public class MyResource {
+
+    private static final Logger log = LoggerFactory.getLogger(MyResource.class);
 
     @Inject
     MyService service;
 
+    @Inject
+    PgPool client;
+
+    @POST
+    @Path("/save")
+    public Uni<Response> save(SaveEntity saveEntity) {
+        log.debug("Add {}", saveEntity);
+        return service.saveEntity(saveEntity)
+                .onItem().transform(i -> Response.ok().build());
+    }
+
+    @POST
+    @Path("/location/add")
+    public Uni<Response> locationAdd(LocationEntity location) {
+        log.debug("Add {}", location);
+        return location.save(client)
+                .onItem().transform(i -> Response.ok().build());
+    }
+
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public Uni<String> hello() {
-        return service.greeting("aaa");
+    @Path("/location/get")
+    public Multi<LocationEntity> locationGet(@QueryParam("start") long start, @QueryParam("stop") long stop) {
+        return LocationEntity.findAll(client, start, stop);
     }
 }

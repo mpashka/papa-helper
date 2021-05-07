@@ -4,6 +4,17 @@ https://smallrye.io/smallrye-mutiny/
 https://smallrye.io/smallrye-mutiny/guides/converters
 
 
+pg_ctlcluster 13 main start
+Ver Cluster Port Status Owner    Data directory              Log file
+13  main    5432 down   postgres /var/lib/postgresql/13/main /var/log/postgresql/postgresql-13-main.log
+sudo -u postgres psql
+create database quarkus_test;
+create user quarkus_test with encrypted password 'quarkus_test';
+grant all privileges on database quarkus_test to quarkus_test;
+
+flutter
+https://stackoverflow.com/questions/57201412/any-way-to-add-google-maps-in-flutter-for-web
+
 # server project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
