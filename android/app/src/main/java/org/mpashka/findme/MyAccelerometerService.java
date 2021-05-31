@@ -1,5 +1,6 @@
 package org.mpashka.findme;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.ContentValues;
@@ -11,6 +12,9 @@ import android.hardware.SensorEventListener2;
 import android.hardware.SensorManager;
 import android.os.IBinder;
 
+import org.mpashka.findme.db.AccelerometerDao;
+import org.mpashka.findme.db.AccelerometerEntity;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -20,22 +24,31 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
+@AndroidEntryPoint
 public class MyAccelerometerService extends Service {
+
+    @Inject
+    AccelerometerDao accelerometerDao;
+
+    @Inject
+    MyPreferences preferences;
 
     private ScheduledExecutorService timer;
     private Runnable timerTask;
     private ScheduledFuture<?> timerTaskFuture;
-    private DBHelper dbHelper;
-    private MyPreferences preferences;
-    private AccelerationListener accelerationListener;
+    private AccelerationListener accelerationListener = new AccelerationListener();
 
     public void onCreate() {
         super.onCreate();
 //        startForeground(1,new Notification());
         Timber.d("onCreate");
-        dbHelper = new DBHelper(createDeviceProtectedStorageContext());
         timer = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "AccelerometerTimer"));
         preferences = new MyPreferences(this);
         timerTask = () -> {
@@ -45,7 +58,6 @@ public class MyAccelerometerService extends Service {
                 Timber.e(e, "Error query db");
             }
         };
-        accelerationListener = new AccelerationListener(dbHelper);
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -70,7 +82,6 @@ public class MyAccelerometerService extends Service {
         }
         timer.shutdown();
         accelerationListener.stopListen();
-        dbHelper.close();
     }
 
     public IBinder onBind(Intent intent) {
@@ -83,11 +94,6 @@ public class MyAccelerometerService extends Service {
         private int count;
         private double sum;
         private double max;
-        private DBHelper dbHelper;
-
-        public AccelerationListener(DBHelper dbHelper) {
-            this.dbHelper = dbHelper;
-        }
 
         public void reset() {
             count = 0;
@@ -142,15 +148,20 @@ public class MyAccelerometerService extends Service {
         private void stopListenAndReport(double max, double avg) {
             stopListen();
             Timber.d("report(%s, %s)", max, avg);
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
-            ContentValues cv = new ContentValues();
-            Instant now = Instant.now();
-            cv.put("time", now.toEpochMilli());
-            cv.put("avg", avg);
-            cv.put("max", max);
-            cv.put("battery", Utils.readChargeLevel(getApplicationContext()));
-            db.insert("accelerometer", null, cv);
-            db.close();
+            try {
+                //noinspection CheckResult
+                accelerometerDao.insert(new AccelerometerEntity()
+                        .setTime(Instant.now().toEpochMilli())
+                        .setAverage(avg)
+                        .setMaximum(max)
+                        .setBattery(Utils.readChargeLevel(getApplicationContext())))
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                        () -> {},
+                        e -> Timber.e(e, "Error saving acceleration"));
+            } catch (Exception e) {
+                Timber.e(e, "Error saving acceleration");
+            }
         }
     }
 

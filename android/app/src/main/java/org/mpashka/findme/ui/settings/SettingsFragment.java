@@ -9,10 +9,23 @@ import androidx.preference.PreferenceManager;
 import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.MyWorkManager;
 import org.mpashka.findme.R;
+import org.mpashka.findme.Utils;
+import org.mpashka.findme.db.MyTransmitService;
+import org.mpashka.findme.db.io.SaveApi;
 
+import javax.inject.Inject;
+
+import retrofit2.Retrofit;
 import timber.log.Timber;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
+
+    @Inject
+    MyPreferences preferences;
+
+    @Inject
+    MyTransmitService transmitService;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         PreferenceManager preferenceManager = getPreferenceManager();
@@ -39,6 +52,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
             MyWorkManager.getInstance().rescheduleAccelerometerService(getContext());
         } else if (key.startsWith("location_")) {
             MyWorkManager.getInstance().restartLocationService(getContext());
+        } else if (key.equals(getContext().getString(R.string.debug_http_id))) {
+            Timber.d("Reload retrofit");
+            Retrofit retrofitClient = Utils.createRetrofitClient(preferences);
+            SaveApi saveApi = retrofitClient.create(SaveApi.class);
+            transmitService.setSaveApi(saveApi);
         }
     }
 

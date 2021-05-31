@@ -1,6 +1,7 @@
 package org.mpashka.findme;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.ContentValues;
@@ -15,6 +16,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
 
+import androidx.room.Insert;
+
+import org.mpashka.findme.db.LocationDao;
+import org.mpashka.findme.db.LocationEntity;
 import org.mpashka.findme.db.MyTransmitService;
 
 import java.time.Instant;
@@ -22,6 +27,8 @@ import java.time.Instant;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 @AndroidEntryPoint
@@ -30,15 +37,15 @@ public class MyLocationService extends Service {
     @Inject
     MyTransmitService transmitService;
 
+    @Inject
+    LocationDao locationDao;
+
     private boolean isRunning = false;
-    private DBHelper dbHelper;
 
     public void onCreate() {
         super.onCreate();
 //        startForeground(1,new Notification());
         isRunning = false;
-        Context deviceContext = createDeviceProtectedStorageContext();
-        dbHelper = new DBHelper(deviceContext);
         Timber.d("onCreate");
     }
 
@@ -59,7 +66,6 @@ public class MyLocationService extends Service {
 
     public void onDestroy() {
         stopListen();
-        dbHelper.close();
         super.onDestroy();
         Timber.d("onDestroy");
     }
@@ -73,18 +79,16 @@ public class MyLocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             Timber.d("onLocationChanged %s", location);
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
-            ContentValues cv = new ContentValues();
-            Instant now = Instant.now();
-            cv.put("time", now.toEpochMilli());
-            cv.put("lat", location.getLatitude());
-            cv.put("long", location.getLongitude());
-            cv.put("accuracy", location.getAccuracy());
-            cv.put("battery", Utils.readChargeLevel(getApplicationContext()));
-            db.insert("location", null, cv);
-            db.close();
-
-            transmitService.transmitLocations();
+            //noinspection CheckResult
+            locationDao.insert(
+                    new LocationEntity()
+                            .setTime(Instant.now().toEpochMilli())
+                            .setLocation(location)
+                            .setBattery(Utils.readChargeLevel(getApplicationContext())))
+                    .subscribeOn(Schedulers.io())
+                    .subscribe(
+                            () -> transmitService.transmitLocations(),
+                            e -> Timber.e(e, "Error saving location"));
         }
 
         @Override

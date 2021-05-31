@@ -20,14 +20,15 @@ import javax.inject.Singleton;
 
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
 import io.reactivex.Single;
 import retrofit2.Response;
 import timber.log.Timber;
 
-@Singleton
 public class MyTransmitService {
 
-    private MyDb db;
+    private LocationDao locationDao;
+    private AccelerometerDao accelerometerDao;
 
     private MyPreferences preferences;
 
@@ -37,9 +38,12 @@ public class MyTransmitService {
 
     private Instant nextCheck;
 
-    @Inject
-    public MyTransmitService(MyDb db, MyPreferences preferences, ConnectivityManager connectivityManager, SaveApi saveApi) {
-        this.db = db;
+    public MyTransmitService(LocationDao locationDao, AccelerometerDao accelerometerDao,
+                             MyPreferences preferences, ConnectivityManager connectivityManager,
+                             SaveApi saveApi)
+    {
+        this.locationDao = locationDao;
+        this.accelerometerDao = accelerometerDao;
         this.preferences = preferences;
         this.connectivityManager = connectivityManager;
         this.saveApi = saveApi;
@@ -65,63 +69,68 @@ public class MyTransmitService {
         int sendSec = preferences.getInt(R.string.send_id, R.integer.send_default);
         nextCheck = now.plus(sendSec, ChronoUnit.SECONDS);
 
-        LocationDao locationDao = db.locationDao();
         //noinspection ResultOfMethodCallIgnored,CheckResult
-        locationDao.loadUnsaved()
-//                .doOnError(e -> Timber.e(e, "Database read error"))
-                .flatMapSingle(u -> {
-                    Timber.d("Send request %s", u.size());
-                    SaveEntity saveEntity = new SaveEntity();
-                    saveEntity.setLocations(u);
-                    return Single.fromObservable(
-                            saveApi.save(saveEntity)
-                            .map(r -> new SaveResult(r, saveEntity)));
-
+        Single.just(new SaveEntity())
+                .flatMap(saveEntity -> {
+                    Timber.d("Loading locations...");
+                    return locationDao.loadUnsaved()
+                            .map(locations -> {
+                                Timber.d("Locations loaded %s", locations.size());
+                                return saveEntity.setLocations(locations);
+                            });
                 })
-//                .doOnError(e -> Timber.e(e, "Send error"))
-                .flatMapSingle(r -> {
-                    Response<Void> response = r.getResponse();
-                    Timber.d("Send response %s", response);
-                    if (response.isSuccessful()) {
-                        List<LocationEntity> locations = r.getSaveEntity().getLocations();
-                        locations.forEach(l -> l.saved = true);
-                        return locationDao.setSaved(r.getSaveEntity()
-                                .getLocations()
-                                .stream()
-                                .map(l -> l.time)
-                                .collect(Collectors.toList()));
-                    } else {
-                        Timber.w("Can't send response: %s", response);
-                        return Single.never();
+                .flatMap(saveEntity -> {
+                    Timber.d("Loading accelerations...");
+                    return accelerometerDao.loadUnsaved()
+                            .map(accelerations -> {
+                                Timber.d("Accelerations loaded %s", accelerations.size());
+                                return saveEntity.setAccelerations(accelerations);
+                            });
+                })
+                .flatMapMaybe(saveEntity -> {
+                    Timber.d("Sending request %s / %s", saveEntity.getAccelerations().size(), saveEntity.getLocations().size());
+                    if (saveEntity.getAccelerations().isEmpty() && saveEntity.getLocations().isEmpty()) {
+                        Timber.d("No data to send");
+                        return Maybe.empty();
                     }
-//                    db.close();
+                    return saveApi.save(saveEntity)
+                            .toSingleDefault(saveEntity)
+                            .toMaybe();
+                })
+                .flatMap(saveEntity -> {
+                        List<LocationEntity> locations = saveEntity.getLocations();
+                        if (locations.isEmpty()) {
+                            return Maybe.just(saveEntity);
+                        } else {
+                            List<Long> locationIds = locations.stream()
+                                    .map(l -> l.time)
+                                    .collect(Collectors.toList());
+                            return locationDao.setSaved(locationIds)
+                                    .map(i -> saveEntity)
+                                    .toMaybe();
+                        }
+                })
+                .flatMap(saveEntity -> {
+                        List<AccelerometerEntity> accelerations = saveEntity.getAccelerations();
+                        if (accelerations.isEmpty()) {
+                            return Maybe.just(saveEntity);
+                        } else {
+                            List<Long> accelerationIds = accelerations.stream()
+                                    .map(l -> l.time)
+                                    .collect(Collectors.toList());
+                            return accelerometerDao.setSaved(accelerationIds)
+                                    .map(i -> saveEntity)
+                                    .toMaybe();
+                        }
                 })
                 .subscribe(
-                        n -> {},
+                        saveEntity -> Timber.d("Saved successfully"),
                         e -> Timber.e(e, "Save error"),
-                        () -> {
-                            Timber.d("Save finally");
-//                    db.close();
-                        }
+                        () -> Timber.d("Save finally (no items to save)")
                 );
     }
 
-
-    static class SaveResult {
-        private Response<Void> response;
-        private SaveEntity saveEntity;
-
-        public SaveResult(Response<Void> response, SaveEntity saveEntity) {
-            this.response = response;
-            this.saveEntity = saveEntity;
-        }
-
-        public Response<Void> getResponse() {
-            return response;
-        }
-
-        public SaveEntity getSaveEntity() {
-            return saveEntity;
-        }
+    public void setSaveApi(SaveApi saveApi) {
+        this.saveApi = saveApi;
     }
 }

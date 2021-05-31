@@ -5,14 +5,24 @@ import androidx.lifecycle.ViewModel;
 
 public class HomeViewModel extends ViewModel {
 
-    private MutableLiveData<Integer> locations = new MutableLiveData<>(0);
-    private MutableLiveData<Integer> accelerometers = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> locationsUnsaved = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> locationsSaved = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> accelerometersUnsaved = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> accelerometersSaved = new MutableLiveData<>(0);
 
-    public MutableLiveData<Integer> getLocations() {
-        return locations;
+    public MutableLiveData<Integer> getLocationsUnsaved() {
+        return locationsUnsaved;
     }
 
-    public MutableLiveData<Integer> getAccelerometers() {
-        return accelerometers;
+    public MutableLiveData<Integer> getLocationsSaved() {
+        return locationsSaved;
+    }
+
+    public MutableLiveData<Integer> getAccelerometersSaved() {
+        return accelerometersSaved;
+    }
+
+    public MutableLiveData<Integer> getAccelerometersUnsaved() {
+        return accelerometersUnsaved;
     }
 }

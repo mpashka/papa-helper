@@ -11,7 +11,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.R;
+import org.mpashka.findme.Utils;
 import org.mpashka.findme.db.io.SaveApi;
+
+import java.io.File;
 
 import javax.inject.Singleton;
 
@@ -32,7 +35,12 @@ import timber.log.Timber;
 @Module
 public class MyHiltModule {
 
-    private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
+    @Provides
+    @Singleton
+    public MyPreferences preferences(@ApplicationContext Context applicationContext) {
+        Timber.d("preferences()");
+        return new MyPreferences(applicationContext);
+    }
 
     @Provides
     @Singleton
@@ -45,26 +53,14 @@ public class MyHiltModule {
     public MyDb myDb(@ApplicationContext Context applicationContext) {
         Timber.d("myDb()");
         Context deviceContext = applicationContext.createDeviceProtectedStorageContext();
+        String dbName = applicationContext.getString(R.string.app_id) + "_db";
+/*
+        File filePath = deviceContext.getDatabasePath(dbName);
+        filePath.delete();
+*/
         try {
             MyDb db = Room
-                    .databaseBuilder(deviceContext, MyDb.class, applicationContext.getString(R.string.app_id) + "_db")
-                    .addMigrations(new Migration(2, 3) {
-                        @Override
-                        public void migrate(@NonNull SupportSQLiteDatabase db) {
-                            Timber.d("Update room db. db version %s", db.getVersion());
-                            db.setVersion(1);
-                            try {
-                                db.execSQL("ALTER TABLE accelerometer ADD COLUMN saved integer DEFAULT 0 NOT NULL;");
-                            } catch (SQLException e) {
-                                Timber.e(e, "Error upgrade accelerometer");
-                            }
-                            try {
-                                db.execSQL("ALTER TABLE location ADD COLUMN saved integer DEFAULT 0 NOT NULL;");
-                            } catch (SQLException e) {
-                                Timber.e(e, "Error upgrade location");
-                            }
-                        }
-                    })
+                    .databaseBuilder(deviceContext, MyDb.class, dbName)
                     .build();
 //        db.close();
 
@@ -77,44 +73,20 @@ public class MyHiltModule {
 
     @Provides
     @Singleton
-    public Retrofit retrofit() {
-        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+    public LocationDao locationDao(MyDb db) {
+        return db.locationDao();
+    }
 
-        OkHttpClient.Builder client = new OkHttpClient.Builder()
-                .addInterceptor(interceptor);
+    @Provides
+    @Singleton
+    public AccelerometerDao accelerometerDao(MyDb db) {
+        return db.accelerometerDao();
+    }
 
-        RxJava2CallAdapterFactory rxAdapter =
-                RxJava2CallAdapterFactory
-                        .createWithScheduler(Schedulers.io());
-        // Schedulers.io()
-/*
-          .addInterceptor(chain -> {
-            Request newRequest =
-                    chain.request().newBuilder()
-                            .addHeader("Accept",
-                                    "application/json,text/plain,* / *") <--
-                            .addHeader("Content-Type",
-                                    "application/json;odata.metadata=minimal")
-                            .addHeader("Authorization", mToken)
-                            .build();
-
-            return chain.proceed(newRequest);
-        });
-
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-                .create();
-
-.addConverterFactory(GsonConverterFactory.create(gson))
-*/
-
-        return new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(rxAdapter)
-                .client(client.build())
-                .build();
+    @Provides
+    @Singleton
+    public Retrofit retrofit(MyPreferences preferences) {
+        return Utils.createRetrofitClient(preferences);
     }
 
     @Provides
@@ -125,9 +97,10 @@ public class MyHiltModule {
 
     @Provides
     @Singleton
-    public MyPreferences preferences(@ApplicationContext Context applicationContext) {
-        Timber.d("preferences()");
-        return new MyPreferences(applicationContext);
+    public MyTransmitService myTransmitService(MyDb db, MyPreferences preferences,
+                                               ConnectivityManager connectivityManager, SaveApi saveApi)
+    {
+        return new MyTransmitService(db, preferences, connectivityManager, saveApi);
     }
 
 }

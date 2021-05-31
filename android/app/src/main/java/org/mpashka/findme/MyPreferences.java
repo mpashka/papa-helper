@@ -30,4 +30,8 @@ public class MyPreferences {
     public String getString(int resourceNameId, int defaultValueId) {
         return preferences.getString(deviceContext.getString(resourceNameId), deviceContext.getResources().getString(defaultValueId));
     }
+
+    public boolean getBoolean(int resourceNameId, int defaultValueId) {
+        return preferences.getBoolean(deviceContext.getString(resourceNameId), deviceContext.getResources().getBoolean(defaultValueId));
+    }
 }

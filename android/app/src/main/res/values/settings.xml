@@ -8,6 +8,9 @@
     <string name="send_id">send_id</string>
     <string name="send_title">Send each</string>
     <integer name="send_default">10</integer>
+    <string name="debug_http_id">debug_http_id</string>
+    <string name="debug_http_title">Debug http requests</string>
+    <bool name="debug_http_default">true</bool>
 
     <string name="ui_section">UI</string>
     <string name="ui_check_id">ui_check_id</string>

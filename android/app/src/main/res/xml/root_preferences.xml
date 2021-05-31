@@ -15,6 +15,13 @@
             android:inputType="number"
             app:useSimpleSummaryProvider="true"
             app:defaultValue="@integer/send_default"/>
+
+        <SwitchPreference
+            app:key="@string/debug_http_id"
+            app:title="@string/debug_http_title"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@bool/debug_http_default"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui_section">
