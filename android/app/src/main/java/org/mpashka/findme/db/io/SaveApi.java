@@ -12,9 +12,20 @@ import io.reactivex.Single;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
+/**
+ * see server.MyResource
+ */
 public interface SaveApi {
-    @POST("/locations")
+    @POST("/findme/save")
     Completable save(@Body SaveEntity save);
+
+    @POST("/findme/location/add")
+    Completable locationAdd(LocationEntity location);
+
+    @GET("/findme/location/get")
+    Completable locationAdd(@Query("start") long start, @Query("stop") long stop);
 }

@@ -1,6 +1,5 @@
 package org.mpashka.findme.db;
 
-import android.annotation.SuppressLint;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -9,20 +8,21 @@ import org.mpashka.findme.R;
 import org.mpashka.findme.db.io.SaveApi;
 import org.mpashka.findme.db.io.SaveEntity;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
-import retrofit2.Response;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
 public class MyTransmitService {
@@ -39,23 +39,27 @@ public class MyTransmitService {
     private Instant nextCheck;
 
     public MyTransmitService(LocationDao locationDao, AccelerometerDao accelerometerDao,
-                             MyPreferences preferences, ConnectivityManager connectivityManager,
-                             SaveApi saveApi)
+                             MyPreferences preferences, ConnectivityManager connectivityManager)
     {
         this.locationDao = locationDao;
         this.accelerometerDao = accelerometerDao;
         this.preferences = preferences;
         this.connectivityManager = connectivityManager;
-        this.saveApi = saveApi;
+        createApi();
     }
 
-    @Inject
-    public void transmitLocations() {
+    public void createApi() {
+        Timber.d("Create save API");
+        saveApi = createRetrofitClient()
+                .create(SaveApi.class);
+    }
+
+    public Maybe<SaveEntity> checkAndTransmitLocations() {
         Timber.d("transmitLocations()");
         Instant now = Instant.now();
         if (nextCheck != null && nextCheck.isBefore(now)) {
             Timber.d("not time to transmit yet");
-            return;
+            return Maybe.empty();
         }
 
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
@@ -63,14 +67,16 @@ public class MyTransmitService {
                 activeNetwork.isConnectedOrConnecting();
         if (!isConnected) {
             Timber.d("not connected!");
-            return;
+            return Maybe.empty();
         }
-
-        int sendSec = preferences.getInt(R.string.send_id, R.integer.send_default);
+        int sendSec = preferences.getInt(R.string.send_interval_id, R.integer.send_interval_default);
         nextCheck = now.plus(sendSec, ChronoUnit.SECONDS);
+        return transmitLocations();
+    }
 
+    public Maybe<SaveEntity> transmitLocations() {
         //noinspection ResultOfMethodCallIgnored,CheckResult
-        Single.just(new SaveEntity())
+        return Single.just(new SaveEntity())
                 .flatMap(saveEntity -> {
                     Timber.d("Loading locations...");
                     return locationDao.loadUnsaved()
@@ -123,14 +129,59 @@ public class MyTransmitService {
                                     .toMaybe();
                         }
                 })
+                .doOnError(e -> Timber.e(e, "Save error"))
+                .doOnSuccess(saveEntity -> Timber.d("Saved successfully"))
+/*
                 .subscribe(
                         saveEntity -> Timber.d("Saved successfully"),
                         e -> Timber.e(e, "Save error"),
                         () -> Timber.d("Save finally (no items to save)")
                 );
+*/
+        ;
     }
 
-    public void setSaveApi(SaveApi saveApi) {
-        this.saveApi = saveApi;
+    private Retrofit createRetrofitClient() {
+        Timber.d("Reload retrofit");
+        OkHttpClient.Builder client = new OkHttpClient.Builder();
+        if (preferences.getBoolean(R.string.send_debug_http_id, R.bool.send_debug_http_default)) {
+            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            client.addInterceptor(interceptor);
+        }
+
+        RxJava2CallAdapterFactory rxAdapter =
+                RxJava2CallAdapterFactory
+                        .createWithScheduler(Schedulers.io());
+        // Schedulers.io()
+/*
+          .addInterceptor(chain -> {
+            Request newRequest =
+                    chain.request().newBuilder()
+                            .addHeader("Accept",
+                                    "application/json,text/plain,* / *") <--
+                            .addHeader("Content-Type",
+                                    "application/json;odata.metadata=minimal")
+                            .addHeader("Authorization", mToken)
+                            .build();
+
+            return chain.proceed(newRequest);
+        });
+
+        Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .create();
+
+.addConverterFactory(GsonConverterFactory.create(gson))
+*/
+
+        String url = preferences.getString(R.string.send_url_id, R.string.send_url_default);
+        return new Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(rxAdapter)
+                .client(client.build())
+                .build();
     }
+
 }

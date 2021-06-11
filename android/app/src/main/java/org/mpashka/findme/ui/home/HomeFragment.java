@@ -14,7 +14,9 @@ import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.R;
 import org.mpashka.findme.db.AccelerometerDao;
 import org.mpashka.findme.db.LocationDao;
+import org.mpashka.findme.db.MyTransmitService;
 
+import java.sql.Time;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 @AndroidEntryPoint
@@ -33,6 +36,9 @@ public class HomeFragment extends Fragment {
 
     @Inject
     AccelerometerDao accelerometerDao;
+
+    @Inject
+    MyTransmitService transmitService;
 
     private HomeViewModel homeViewModel;
     private ScheduledExecutorService timer;
@@ -53,6 +59,7 @@ public class HomeFragment extends Fragment {
         homeViewModel.getAccelerometersUnsaved().observe(getViewLifecycleOwner(), s -> accelerationsUnsavedView.setText(String.valueOf(s)));
         timer = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "MyTimer"));
         timerTask = () -> {
+            Timber.d("Timer task");
             try {
                 int locationsSaved = locationDao.getSavedCount();
                 int locationsUnsaved = locationDao.getUnsavedCount();
@@ -71,6 +78,17 @@ public class HomeFragment extends Fragment {
 
 //        Todo use main view thread instead of timer
 //        root.postDelayed()
+
+        root.findViewById(R.id.home_send).setOnClickListener(v -> {
+            Timber.d("Press send");
+            transmitService.transmitLocations()
+                    .subscribeOn(Schedulers.io())
+                    .doOnComplete(() -> timerTask.run())
+                    .subscribe(saveEntity -> Timber.d("Entity saved"),
+                            e -> Timber.w(e, "Entity save error"),
+                            () -> Timber.d("Complete"));
+        });
+
         return root;
     }
 

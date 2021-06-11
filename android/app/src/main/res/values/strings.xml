@@ -31,4 +31,5 @@
     <string name="permissions_name">Permissions</string>
     <string name="home_locations">Locations</string>
     <string name="home_accelerations">Accelerations</string>
+    <string name="home_send">Send</string>
 </resources>

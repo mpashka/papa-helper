@@ -5,12 +5,17 @@
     <string name="restart_check_id">restart_check_id</string>
     <string name="restart_check_title">Restart check</string>
     <integer name="restart_check_default">12000000</integer>
-    <string name="send_id">send_id</string>
-    <string name="send_title">Send each</string>
-    <integer name="send_default">10</integer>
-    <string name="debug_http_id">debug_http_id</string>
-    <string name="debug_http_title">Debug http requests</string>
-    <bool name="debug_http_default">true</bool>
+
+    <string name="send_section">Send data</string>
+    <string name="send_url_id">send_url_id</string>
+    <string name="send_url_title">Server URL</string>
+    <string name="send_url_default">https://jsonplaceholder.typicode.com</string>
+    <string name="send_interval_id">send_interval_id</string>
+    <string name="send_interval_title">Send each seconds</string>
+    <integer name="send_interval_default">10</integer>
+    <string name="send_debug_http_id">send_debug_http_id</string>
+    <string name="send_debug_http_title">Debug http requests</string>
+    <bool name="send_debug_http_default">true</bool>
 
     <string name="ui_section">UI</string>
     <string name="ui_check_id">ui_check_id</string>
@@ -71,5 +76,14 @@
     <string name="location_time_id">location_time_id</string>
     <string name="location_time_title">Min time to check location</string>
     <integer name="location_time_default">10</integer>
+    <integer name="location_notification_peer_id">2345</integer>
+    <string name="location_notification_channel_id">location_channel_id</string>
+    <string name="location_notification_channel_name">location_channel</string>
+    <string name="location_notification_title">Location poll</string>
+    <string name="location_notification_text">Location text</string>
+    <string name="location_notification_ticker">Location ticker</string>
+    <integer name="accelerometer_notification_peer_id">2346</integer>
+    <string name="accelerometer_notification_channel_id">accelerometer_channel_id</string>
+    <string name="accelerometer_notification_channel_name">accelerometer_channel</string>
 
 </resources>

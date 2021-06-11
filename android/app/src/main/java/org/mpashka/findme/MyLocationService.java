@@ -3,12 +3,15 @@ package org.mpashka.findme;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,6 +19,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
 
+import androidx.core.app.NotificationCompat;
 import androidx.room.Insert;
 
 import org.mpashka.findme.db.LocationDao;
@@ -43,10 +47,29 @@ public class MyLocationService extends Service {
     private boolean isRunning = false;
 
     public void onCreate() {
-        super.onCreate();
-//        startForeground(1,new Notification());
-        isRunning = false;
         Timber.d("onCreate");
+        super.onCreate();
+        String channelId = getString(R.string.location_notification_channel_id);
+        NotificationChannel notificationChannel = new NotificationChannel(channelId,
+                getString(R.string.location_notification_channel_name),
+                NotificationManager.IMPORTANCE_NONE);
+        notificationChannel.setLightColor(Color.BLUE);
+        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.createNotificationChannel(notificationChannel);
+
+        startForeground(getResources().getInteger(R.integer.location_notification_peer_id),
+                new NotificationCompat.Builder(this, channelId)
+                        .setOngoing(true)
+                        .setContentTitle(getString(R.string.location_notification_title))
+                        .setContentText(getString(R.string.location_notification_text))
+                        .setSmallIcon(R.drawable.ic_notification_location)
+                        .setTicker(getString(R.string.location_notification_ticker))
+                        .setPriority(NotificationCompat.PRIORITY_MIN)
+                        .build()
+        );
+
+        isRunning = false;
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -79,15 +102,15 @@ public class MyLocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             Timber.d("onLocationChanged %s", location);
-            //noinspection CheckResult
+            //noinspection CheckResult,ResultOfMethodCallIgnored
             locationDao.insert(
                     new LocationEntity()
                             .setTime(Instant.now().toEpochMilli())
                             .setLocation(location)
                             .setBattery(Utils.readChargeLevel(getApplicationContext())))
                     .subscribeOn(Schedulers.io())
-                    .subscribe(
-                            () -> transmitService.transmitLocations(),
+                    .andThen(transmitService.checkAndTransmitLocations())
+                    .subscribe(saveEntity -> Timber.d("Saved successfully"),
                             e -> Timber.e(e, "Error saving location"));
         }
 

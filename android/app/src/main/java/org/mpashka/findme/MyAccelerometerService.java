@@ -2,15 +2,21 @@ package org.mpashka.findme;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener2;
 import android.hardware.SensorManager;
 import android.os.IBinder;
+
+import androidx.core.app.NotificationCompat;
 
 import org.mpashka.findme.db.AccelerometerDao;
 import org.mpashka.findme.db.AccelerometerEntity;
@@ -46,9 +52,28 @@ public class MyAccelerometerService extends Service {
     private AccelerationListener accelerationListener = new AccelerationListener();
 
     public void onCreate() {
-        super.onCreate();
-//        startForeground(1,new Notification());
         Timber.d("onCreate");
+        super.onCreate();
+        String channelId = getString(R.string.accelerometer_notification_channel_id);
+        NotificationChannel notificationChannel = new NotificationChannel(channelId,
+                getString(R.string.accelerometer_notification_channel_name),
+                NotificationManager.IMPORTANCE_NONE);
+        notificationChannel.setLightColor(Color.BLUE);
+        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.createNotificationChannel(notificationChannel);
+
+        startForeground(getResources().getInteger(R.integer.accelerometer_notification_peer_id),
+                new NotificationCompat.Builder(this, channelId)
+                        .setOngoing(true)
+                        .setContentTitle(getString(R.string.location_notification_title))
+                        .setContentText(getString(R.string.location_notification_text))
+                        .setSmallIcon(R.drawable.ic_notification_accelerometer)
+                        .setTicker(getString(R.string.location_notification_ticker))
+                        .setPriority(NotificationCompat.PRIORITY_MIN)
+                        .build()
+        );
+
         timer = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "AccelerometerTimer"));
         preferences = new MyPreferences(this);
         timerTask = () -> {

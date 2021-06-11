@@ -85,22 +85,11 @@ public class MyHiltModule {
 
     @Provides
     @Singleton
-    public Retrofit retrofit(MyPreferences preferences) {
-        return Utils.createRetrofitClient(preferences);
-    }
-
-    @Provides
-    @Singleton
-    public SaveApi saveApi(Retrofit retrofit) {
-        return retrofit.create(SaveApi.class);
-    }
-
-    @Provides
-    @Singleton
-    public MyTransmitService myTransmitService(MyDb db, MyPreferences preferences,
-                                               ConnectivityManager connectivityManager, SaveApi saveApi)
+    public MyTransmitService myTransmitService(LocationDao locationDao, AccelerometerDao accelerometerDao,
+                                               MyPreferences preferences,
+                                               ConnectivityManager connectivityManager)
     {
-        return new MyTransmitService(db, preferences, connectivityManager, saveApi);
+        return new MyTransmitService(locationDao, accelerometerDao, preferences, connectivityManager);
     }
 
 }

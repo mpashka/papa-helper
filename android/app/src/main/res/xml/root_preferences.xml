@@ -8,20 +8,27 @@
             android:inputType="number"
             app:useSimpleSummaryProvider="true"
             app:defaultValue="@integer/restart_check_default"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/send_section">
+        <EditTextPreference
+            app:key="@string/send_url_id"
+            app:title="@string/send_url_title"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@string/send_url_default"/>
 
         <EditTextPreference
-            app:key="@string/send_id"
-            app:title="@string/send_title"
+            app:key="@string/send_interval_id"
+            app:title="@string/send_interval_title"
             android:inputType="number"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@integer/send_default"/>
+            app:defaultValue="@integer/send_interval_default"/>
 
         <SwitchPreference
-            app:key="@string/debug_http_id"
-            app:title="@string/debug_http_title"
+            app:key="@string/send_debug_http_id"
+            app:title="@string/send_debug_http_title"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@bool/debug_http_default"/>
-
+            app:defaultValue="@bool/send_debug_http_default"/>
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/ui_section">

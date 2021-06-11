@@ -13,7 +13,6 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Utils {
-    private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
 
     public static int readChargeLevel(Context context) {
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -27,44 +26,4 @@ public class Utils {
         return isCharging ? -1 : level;
     }
 
-    public static Retrofit createRetrofitClient(MyPreferences preferences) {
-        OkHttpClient.Builder client = new OkHttpClient.Builder();
-        if (preferences.getBoolean(R.string.debug_http_id, R.bool.debug_http_default)) {
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            client.addInterceptor(interceptor);
-        }
-
-        RxJava2CallAdapterFactory rxAdapter =
-                RxJava2CallAdapterFactory
-                        .createWithScheduler(Schedulers.io());
-        // Schedulers.io()
-/*
-          .addInterceptor(chain -> {
-            Request newRequest =
-                    chain.request().newBuilder()
-                            .addHeader("Accept",
-                                    "application/json,text/plain,* / *") <--
-                            .addHeader("Content-Type",
-                                    "application/json;odata.metadata=minimal")
-                            .addHeader("Authorization", mToken)
-                            .build();
-
-            return chain.proceed(newRequest);
-        });
-
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
-                .create();
-
-.addConverterFactory(GsonConverterFactory.create(gson))
-*/
-
-        return new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(rxAdapter)
-                .client(client.build())
-                .build();
-    }
 }
