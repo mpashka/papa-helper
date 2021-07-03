@@ -25,6 +25,7 @@ import androidx.room.Insert;
 import org.mpashka.findme.db.LocationDao;
 import org.mpashka.findme.db.LocationEntity;
 import org.mpashka.findme.db.MyTransmitService;
+import org.mpashka.findme.miband.MiBandManager;
 
 import java.time.Instant;
 
@@ -43,6 +44,9 @@ public class MyLocationService extends Service {
 
     @Inject
     LocationDao locationDao;
+
+    @Inject
+    MiBandManager miBandManager;
 
     private boolean isRunning = false;
 
@@ -102,15 +106,22 @@ public class MyLocationService extends Service {
         @Override
         public void onLocationChanged(Location location) {
             Timber.d("onLocationChanged %s", location);
+
             //noinspection CheckResult,ResultOfMethodCallIgnored
-            locationDao.insert(
-                    new LocationEntity()
+            miBandManager
+                    .readMiBandInfo()
+                    .observeOn(Schedulers.io())
+                    .flatMap(miBandInfo -> locationDao.insert(new LocationEntity()
                             .setTime(Instant.now().toEpochMilli())
                             .setLocation(location)
-                            .setBattery(Utils.readChargeLevel(getApplicationContext())))
-                    .subscribeOn(Schedulers.io())
-                    .andThen(transmitService.checkAndTransmitLocations())
-                    .subscribe(saveEntity -> Timber.d("Saved successfully"),
+                            .setBattery(Utils.readChargeLevel(getApplicationContext()))
+                            .setMiBattery(miBandInfo.getBattery())
+                            .setMiSteps(miBandInfo.getSteps())
+                            .setMiHeart(miBandInfo.getHeartRate())
+                    ))
+                    .flatMapMaybe(l -> transmitService.checkAndTransmitLocations())
+//                    .doOnComplete()
+                    .subscribe(saveEntity -> Timber.d("Location saved successfully"),
                             e -> Timber.e(e, "Error saving location"));
         }
 

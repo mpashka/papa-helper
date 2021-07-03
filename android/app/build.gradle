@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 28
     buildToolsVersion '29.0.2'
 
     defaultConfig {
         applicationId "org.mpashka.findme"
-        minSdkVersion 29
-        targetSdkVersion 29
+        minSdkVersion 28
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
 
@@ -78,4 +78,9 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
 //    implementation 'com.squareup.okhttp3:okhttp:4.3.1'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.3.1'
+
+    implementation "com.polidea.rxandroidble2:rxandroidble:1.12.1"
+
+    implementation rootProject.ext.libs.rxandroid
+    implementation rootProject.ext.libs.rxjava
 }

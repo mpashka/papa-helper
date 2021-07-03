@@ -24,6 +24,12 @@
         tools:layout="@layout/fragment_slideshow" />
 
     <fragment
+        android:id="@+id/nav_debug"
+        android:name="org.mpashka.findme.ui.debug.DebugFragment"
+        android:label="@string/menu_debug"
+        tools:layout="@layout/fragment_debug" />
+
+    <fragment
         android:id="@+id/nav_settings"
         android:name="org.mpashka.findme.ui.settings.SettingsFragment"
         android:label="@string/menu_settings"/>

@@ -26,8 +26,8 @@ public class PermissionsFragment extends Fragment {
 
     private static final List<String> LOCATION_PERMISSIONS = Arrays.asList(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION
+//            Manifest.permission.ACCESS_BACKGROUND_LOCATION
     );
 
     public View onCreateView(@NonNull LayoutInflater inflater,

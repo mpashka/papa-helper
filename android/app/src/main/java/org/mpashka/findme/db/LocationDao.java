@@ -26,7 +26,7 @@ public interface LocationDao {
     Single<Integer> setSaved(Collection<Long> times);
 
     @Insert
-    Completable insert(LocationEntity locationEntity);
+    Single<Long> insert(LocationEntity locationEntity);
 
     @Query("SELECT COUNT(*) FROM location WHERE SAVED = 0")
     int getUnsavedCount();

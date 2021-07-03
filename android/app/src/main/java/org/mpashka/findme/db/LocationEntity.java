@@ -37,6 +37,21 @@ public class LocationEntity {
     @Expose
     public int battery;
 
+    @ColumnInfo(name = "mi_battery")
+    @SerializedName("mi_battery")
+    @Expose
+    public int miBattery;
+
+    @ColumnInfo(name = "mi_steps")
+    @SerializedName("mi_steps")
+    @Expose
+    public int miSteps;
+
+    @ColumnInfo(name = "mi_heart")
+    @SerializedName("mi_heart")
+    @Expose
+    public int miHeart;
+
     @ColumnInfo(name = "saved", index = true)
     public boolean saved;
 
@@ -69,6 +84,26 @@ public class LocationEntity {
 
     public LocationEntity setBattery(int battery) {
         this.battery = battery;
+        return this;
+    }
+
+    public LocationEntity setMiBattery(int miBattery) {
+        this.miBattery = miBattery;
+        return this;
+    }
+
+    public LocationEntity setMiSteps(int miSteps) {
+        this.miSteps = miSteps;
+        return this;
+    }
+
+    public LocationEntity setMiHeart(int miHeart) {
+        this.miHeart = miHeart;
+        return this;
+    }
+
+    public LocationEntity setSaved(boolean saved) {
+        this.saved = saved;
         return this;
     }
 }

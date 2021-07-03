@@ -2,6 +2,8 @@ package org.mpashka.findme;
 
 import android.app.Application;
 
+import com.polidea.rxandroidble2.RxBleClient;
+
 import org.mpashka.findme.db.MyDb;
 
 import java.util.Timer;

@@ -2,6 +2,8 @@ package org.mpashka.findme;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.util.TypedValue;
 
 
 public class MyPreferences {
@@ -24,7 +26,16 @@ public class MyPreferences {
 
     public float getFloat(int resourceNameId, int defaultValueId) {
         String stringVal = preferences.getString(deviceContext.getString(resourceNameId), null);
-        return stringVal != null ? Float.parseFloat(stringVal) : deviceContext.getResources().getFloat(defaultValueId);
+        if (stringVal != null) {
+            return Float.parseFloat(stringVal);
+        }
+        TypedValue outValue = new TypedValue();
+        deviceContext.getResources().getValue(defaultValueId, outValue, true);
+        if (outValue.type != TypedValue.TYPE_FLOAT) {
+            throw new Resources.NotFoundException("Resource default value ID #0x" + Integer.toHexString(defaultValueId)
+                    + " type #0x" + Integer.toHexString(outValue.type) + " is not valid float");
+        }
+        return outValue.getFloat();
     }
 
     public String getString(int resourceNameId, int defaultValueId) {
