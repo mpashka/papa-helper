@@ -11,6 +11,7 @@ import timber.log.Timber;
 public class MiBandManager {
 
     private static final int HEART_RATE_COUNT = 3;
+    public static final int HEART_RATE_TIMEOUT = 60;
 
     private MiBand miBand;
     private int prevSteps;
@@ -23,8 +24,8 @@ public class MiBandManager {
     public Single<MiBandInfo> readMiBandInfo() {
         MiBandInfo miBandInfo = new MiBandInfo();
 
-        // todo [!] plain auth - after heart rate fix
         return miBand.connect()
+                .flatMap(i -> miBand.auth())
                 .flatMapSingle(i -> miBand.readBatteryInfo())
                 .doOnNext(miBandInfo::setBattery)
                 .flatMapSingle(i -> miBand.readSteps())
@@ -36,15 +37,15 @@ public class MiBandManager {
     }
 
     private Single<MiBandInfo> readHeartRateIfNeeded(MiBandInfo miBandInfo) {
-        if (prevSteps > 0 && miBandInfo.getSteps() != prevSteps) {
-            return Single.just(miBandInfo);
-        }
+//        if (prevSteps > 0 && miBandInfo.getSteps() != prevSteps) {
+//            return Single.just(miBandInfo);
+//        }
         Timber.d("Request heart rate since prev steps %s are zero or same %s", prevSteps, miBandInfo.getSteps());
         return miBand.heartRateSubscribe()
                 .flatMapMaybe(rate -> miBandInfo.addHeartRate(miBandInfo.heartRateCount)
                         ? Maybe.just(miBandInfo.getHeartRate())
                         : Maybe.empty())
-                .timeout(10, TimeUnit.SECONDS)
+                .timeout(HEART_RATE_TIMEOUT, TimeUnit.SECONDS)
                 .onErrorReturn(e -> {
                     Timber.d(e, "Heart rate timeout occurred. Return current value %s", miBandInfo.getHeartRate());
                     return miBandInfo.getHeartRate();
@@ -54,8 +55,8 @@ public class MiBandManager {
     }
 
     public static class MiBandInfo {
-        private int battery;
-        private int steps;
+        private int battery = -1;
+        private int steps = -1;
         private int heartRateSum;
         private int heartRateCount;
 
@@ -82,7 +83,7 @@ public class MiBandManager {
         }
 
         public int getHeartRate() {
-            return heartRateCount > 0 ? heartRateSum / heartRateCount : 0;
+            return heartRateCount > 0 ? heartRateSum / heartRateCount : -1;
         }
 
         @Override

@@ -26,15 +26,27 @@ public class LocationEntity {
     @JsonProperty("battery")
     public int battery;
 
+    @JsonProperty("mi_battery")
+    public int miBattery;
+
+    @JsonProperty("mi_steps")
+    public int miSteps;
+
+    @JsonProperty("mi_heart")
+    public int miHeart;
+
     public LocationEntity() {
     }
 
-    public LocationEntity(long time, double latitude, double longitude, double accuracy, int battery) {
+    public LocationEntity(long time, double latitude, double longitude, double accuracy, int battery, int miBattery, int miSteps, int miHeart) {
         this.time = time;
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
         this.battery = battery;
+        this.miBattery = miBattery;
+        this.miSteps = miSteps;
+        this.miHeart = miHeart;
     }
 
     public static void init(PgPool client) {
@@ -45,7 +57,10 @@ public class LocationEntity {
                         "lat NUMERIC(14,11) NOT NULL, " +
                         "long NUMERIC(14,11) NOT NULL, " +
                         "accuracy NUMERIC(6,3) NOT NULL," +
-                        "battery NUMERIC" +
+                        "battery NUMERIC," +
+                        "mi_battery NUMERIC," +
+                        "mi_steps NUMERIC," +
+                        "mi_heart NUMERIC" +
                         ")").execute())
                 .await().indefinitely();
     }
@@ -55,7 +70,11 @@ public class LocationEntity {
                 row.getDouble("lat"),
                 row.getDouble("long"),
                 row.getDouble("accuracy"),
-                row.getInteger("battery"));
+                row.getInteger("battery"),
+                row.getInteger("mi_battery"),
+                row.getInteger("mi_steps"),
+                row.getInteger("mi_heart")
+                );
     }
 
     public static Multi<LocationEntity> findAll(PgPool client, long start, long stop) {
@@ -88,6 +107,9 @@ public class LocationEntity {
                 ", longitude=" + longitude +
                 ", accuracy=" + accuracy +
                 ", battery=" + battery +
+                ", miBattery=" + miBattery +
+                ", miSteps=" + miSteps +
+                ", miHeart=" + miHeart +
                 '}';
     }
 }

@@ -18,6 +18,7 @@ public class DBInit {
     private final boolean schemaCreate;
 
     public DBInit(PgPool client, @ConfigProperty(name = "myapp.schema.create", defaultValue = "true") boolean schemaCreate) {
+        log.debug("DBInit.new");
         this.client = client;
         this.schemaCreate = schemaCreate;
     }
@@ -29,7 +30,12 @@ public class DBInit {
     }
 
     private void initdb() {
-        LocationEntity.init(client);
-        AccelerometerEntity.init(client);
+        log.debug("Init database...");
+        try {
+            LocationEntity.init(client);
+            AccelerometerEntity.init(client);
+        } catch (Exception e) {
+            log.error("Db init error", e);
+        }
     }
 }

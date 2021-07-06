@@ -26,6 +26,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
@@ -41,8 +42,6 @@ public class MiBand {
 
     public static final int GATT_READ_NOT_PERMIT = 2;
     public static final int GATT_WRITE_NOT_PERMIT = 3;
-
-    private static final byte[] empty = new byte[0];
 
 
     public static final String BASE_UUID = "0000%s-0000-1000-8000-00805f9b34fb"; //this is common for all BTLE devices. see http://stackoverflow.com/questions/18699251/finding-out-android-bluetooth-le-gatt-profiles
@@ -132,7 +131,7 @@ public class MiBand {
     private RxBleConnection connection;
     private Disposable stateDisposable;
     private CompositeDisposable compositeDisposable;
-    private PublishSubject<Boolean> authObservable = PublishSubject.create();
+//    private PublishSubject<Boolean> authObservable = PublishSubject.create();
 
     public void init(RxBleClient bleClient, String address) {
         device = bleClient.getBleDevice(address);
@@ -154,31 +153,40 @@ public class MiBand {
                 .doFinally(() -> {
                     Timber.d("Connection finally called");
                 })
-                .flatMap(i -> setupNotification(UUID_CHARACTERISTIC_AUTH, o -> o
-                        .flatMapSingle(this::handleAuth)
-                        .subscribe()))
+
                 .flatMap(i -> setupNotification(UUID_CHARACTERISTIC_DEVICEEVENT, o -> compositeDisposable.add(o.subscribe(this::handleDeviceEvent))))
 //                .flatMap(i -> configurationSubscribe())
-                .flatMapSingle(i -> auth())
-                // todo Check auth response
+//                .flatMap(i -> auth())
                 .map(i -> connection);
 //                .subscribe();
 //        stateDisposable.dispose();
     }
 
     public void disconnect() {
+        close();
         if (compositeDisposable != null) {
             compositeDisposable.dispose();
         }
     }
 
     public void close() {
-        stateDisposable.dispose();
+        if (stateDisposable != null) {
+            stateDisposable.dispose();
+        }
     }
 
     private Single<byte[]> read(UUID characteristicUuid) {
         Timber.d("Reading [%s]...", characteristicUuid);
         return connection.readCharacteristic(characteristicUuid)
+                .onErrorResumeNext(e -> {
+                    if (e instanceof BleGattCharacteristicException && ((BleGattCharacteristicException) e).getStatus() == GATT_READ_NOT_PERMIT) {
+                        Timber.d("Write error. Auth required");
+                        return auth()
+                                .firstOrError()
+                                .flatMap(i -> connection.readCharacteristic(characteristicUuid));
+                    }
+                    return Single.error(e);
+                })
                 .doOnSuccess(bytes -> Timber.d("Read [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)));
     }
 
@@ -188,14 +196,10 @@ public class MiBand {
                 .onErrorResumeNext(e -> {
                     if (characteristicUuid != UUID_CHARACTERISTIC_AUTH && e instanceof BleGattCharacteristicException
                             && ((BleGattCharacteristicException) e).getStatus() == GATT_WRITE_NOT_PERMIT) {
-                        Timber.d("Auth required");
-//                        be.characteristic;
-//                        be.getBleGattOperationType()
-                        auth();
-                        return authObservable
+                        Timber.d("Write error. Auth required");
+                        return auth()
                                 .firstOrError()
-                                .map(i -> connection)
-                                .flatMap(c -> c.writeCharacteristic(characteristicUuid, bytes));
+                                .flatMap(i -> connection.writeCharacteristic(characteristicUuid, bytes));
                     }
                     return Single.error(e);
                 })
@@ -207,8 +211,8 @@ public class MiBand {
     }
 
     public <T> Observable<Observable<byte[]>> setupNotification(UUID characteristicUuid, ObservableTransformer<byte[], T> transformer, Consumer<Observable<T>> notificationObserver) {
-        Timber.d("Notifications subscribe for [%s]", characteristicUuid);
         return connection.setupNotification(characteristicUuid)
+                .doOnNext(observable -> Timber.d("Notifications subscribe for [%s]", characteristicUuid))
                 .doOnNext(observable -> notificationObserver.accept(observable
                         .doOnNext(bytes -> Timber.d("Notify [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)))
                         .compose(transformer)
@@ -220,9 +224,9 @@ public class MiBand {
                                                    Function<Observable<byte[]>, ? extends SingleSource<?>> action,
                                                    ObservableTransformer<byte[], T> transformer)
     {
-        Timber.d("Notifications subscribe for [%s]", characteristicUuid);
         Observable<Observable<byte[]>> notificationObservable = connection.setupNotification(characteristicUuid);
         return notificationObservable
+                .doOnNext(o -> Timber.d("Notifications subscribe for [%s]", characteristicUuid))
                 .flatMapSingle(action)
                 .flatMap(i -> notificationObservable)
                 .flatMap(observable -> observable
@@ -232,8 +236,16 @@ public class MiBand {
                 .doOnNext(data -> Timber.d("Notify [%s] object: %s", characteristicUuid, data));
     }
 
-    public Single<byte[]> auth() {
+    public Observable<Boolean> auth() {
         Timber.d("Start auth");
+        return setupNotificationFlow(UUID_CHARACTERISTIC_AUTH,
+                o -> sendAuth(),
+                o -> o)
+                .flatMapMaybe(this::handleAuth)
+                .doOnNext(a -> Timber.d("Authenticated %s", a));
+    }
+
+    public Single<byte[]> sendAuth() {
 /* needAuth - true
         byte[] sendKey = new byte[2 + 16];
         sendKey[0] = AUTH_SEND_KEY;
@@ -246,16 +258,17 @@ public class MiBand {
         return write(UUID_CHARACTERISTIC_AUTH, requestAuthNumber());
     }
 
-    public Single<byte[]> handleAuth(byte[] value) throws NoSuchAlgorithmException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException {
+    public Maybe<Boolean> handleAuth(byte[] value) throws NoSuchAlgorithmException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException {
         Timber.d("Received characteristic auth");
         if (value[0] != AUTH_RESPONSE) {
             Timber.d("Unknown auth request");
-            return Single.just(empty);
+            return Maybe.empty();
         }
 
         if (value[1] == AUTH_SEND_KEY && value[2] == AUTH_SUCCESS) {
             Timber.d("Sending the secret key to the device");
-            return write(UUID_CHARACTERISTIC_AUTH, requestAuthNumber());
+            return write(UUID_CHARACTERISTIC_AUTH, requestAuthNumber())
+                    .flatMapMaybe(i -> Maybe.empty());
         } else if ((value[1] & 0x0f) == AUTH_REQUEST_RANDOM_AUTH_NUMBER && value[2] == AUTH_SUCCESS) {
             byte[] eValue = handleAESAuth(value, getSecretKey());
             byte[] responseValue = new byte[eValue.length + 2];
@@ -263,16 +276,17 @@ public class MiBand {
             responseValue[1] = authFlags;
             System.arraycopy(eValue, 0, responseValue, 2, eValue.length);
             Timber.d("Sending the encrypted random key to the device");
-            return write(UUID_CHARACTERISTIC_AUTH, responseValue);
+            return write(UUID_CHARACTERISTIC_AUTH, responseValue)
+                    .flatMapMaybe(i -> Maybe.empty());
 //                        huamiSupport.setCurrentTimeWithService(builder);
         } else if ((value[1] & 0x0f) == AUTH_SEND_ENCRYPTED_AUTH_NUMBER && value[2] == AUTH_SUCCESS) {
-            Timber.d("Authenticated, now initialize phase 2");
-            authObservable.onNext(true);
-            return Single.just(empty);
+            Timber.d("Authenticated");
+//            authObservable.onNext(true);
+            return Maybe.just(true);
         } else {
             Timber.d("Unknown auth response request");
         }
-        return Single.just(empty);
+        return Maybe.empty();
     }
 
     private byte[] requestAuthNumber() {
