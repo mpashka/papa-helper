@@ -3,16 +3,17 @@
 plugins {
     id 'com.android.application'
     id 'dagger.hilt.android.plugin'
+    id 'com.google.gms.google-services'
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
     buildToolsVersion '29.0.2'
 
     defaultConfig {
         applicationId "org.mpashka.findme"
         minSdkVersion 28
-        targetSdkVersion 28
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
 
@@ -83,4 +84,8 @@ dependencies {
 
     implementation rootProject.ext.libs.rxandroid
     implementation rootProject.ext.libs.rxjava
+
+    implementation platform('com.google.firebase:firebase-bom:28.2.0')
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-analytics'
 }

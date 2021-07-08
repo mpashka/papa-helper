@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "277565524120",
+    "project_id": "papa-helper",
+    "storage_bucket": "papa-helper.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:277565524120:android:4f4c0bb101dd4f355ea8ed",
+        "android_client_info": {
+          "package_name": "org.mpashka.findme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "277565524120-vuu16jims8548j6a2l3ngf7dms9mj9qb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4ufSYX7BW8MDygAgS0uTPm_c9ZE5VPdI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "277565524120-vuu16jims8548j6a2l3ngf7dms9mj9qb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

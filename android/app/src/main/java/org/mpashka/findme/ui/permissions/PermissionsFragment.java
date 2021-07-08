@@ -37,6 +37,17 @@ public class PermissionsFragment extends Fragment {
         Fragment settings = new PremissionsSettingsFragment();
         transaction.add(R.id.permissions_fragment_container_view, settings);
         transaction.commit();
+
+/*
+
+todo add
+
+        isBackgroundRestricted
+                isInLockTaskMode
+        isLowMemoryKillReportSupported
+        https://developer.android.com/reference/android/app/ActivityManager#isBackgroundRestricted()
+*/
+
         return root;
     }
 

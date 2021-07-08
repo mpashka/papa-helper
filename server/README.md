@@ -13,6 +13,10 @@ sudo -u postgres psql
 create database papa_helper;
 create user quarkus_test with encrypted password 'quarkus_test';
 grant all privileges on database quarkus_test to quarkus_test;
+
+docker exec -it papa-postgresql psql
+\c papa_helper
+\td
 ```
 
 flutter

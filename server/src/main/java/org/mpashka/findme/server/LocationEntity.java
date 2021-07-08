@@ -7,6 +7,8 @@ import io.vertx.mutiny.pgclient.PgPool;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.Tuple;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 public class LocationEntity {
@@ -71,14 +73,14 @@ public class LocationEntity {
                 row.getDouble("long"),
                 row.getDouble("accuracy"),
                 row.getInteger("battery"),
-                row.getInteger("mi_battery"),
-                row.getInteger("mi_steps"),
-                row.getInteger("mi_heart")
+                Optional.ofNullable(row.getInteger("mi_battery")).orElse(-1),
+                Optional.ofNullable(row.getInteger("mi_steps")).orElse(-1),
+                Optional.ofNullable(row.getInteger("mi_heart")).orElse(-1)
                 );
     }
 
     public static Multi<LocationEntity> findAll(PgPool client, long start, long stop) {
-        return client.preparedQuery("SELECT time, lat, long, accuracy, battery " +
+        return client.preparedQuery("SELECT time, lat, long, accuracy, battery, mi_battery, mi_steps, mi_heart " +
                 "FROM location " +
                 "WHERE time >= $1 and time <= $2" +
                 "ORDER BY time ASC")
@@ -90,8 +92,8 @@ public class LocationEntity {
     }
 
     public Uni<Void> save(PgPool client) {
-        return client.preparedQuery("INSERT INTO location (time, lat, long, accuracy, battery) VALUES ($1, $2, $3, $4, $5)")
-                .execute(Tuple.of(time, latitude, longitude, accuracy, battery))
+        return client.preparedQuery("INSERT INTO location (time, lat, long, accuracy, battery, mi_battery, mi_steps, mi_heart) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)")
+                .execute(Tuple.tuple(List.of(time, latitude, longitude, accuracy, battery, miBattery, miSteps, miHeart)))
                 .onItem().transform(i -> null);
         /*
         return client.preparedQuery("INSERT INTO fruits (name) VALUES ($1) RETURNING (id)").execute(Tuple.of(name))

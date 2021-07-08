@@ -2,6 +2,8 @@
     <string name="app_id">org.mpashka.findme</string>
     <string name="app_name">Papa helper</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="fcm_message">FCM Message</string>
 
     <!-- Preference Titles -->
     <string name="sync_header">Sync</string>
@@ -12,10 +14,9 @@
     <!-- Sync Preferences -->
     <string name="sync_title">Sync email periodically</string>
     <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
-    <string name="title_activity_main2">MainActivity</string>
+    <string name="title_activity_main2">Papa helper</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>

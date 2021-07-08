@@ -66,10 +66,10 @@ public class MyAccelerometerService extends Service {
         startForeground(getResources().getInteger(R.integer.accelerometer_notification_peer_id),
                 new NotificationCompat.Builder(this, channelId)
                         .setOngoing(true)
-                        .setContentTitle(getString(R.string.location_notification_title))
-                        .setContentText(getString(R.string.location_notification_text))
+                        .setContentTitle(getString(R.string.accelerometer_notification_title))
+                        .setContentText(getString(R.string.accelerometer_notification_text))
                         .setSmallIcon(R.drawable.ic_notification_accelerometer)
-                        .setTicker(getString(R.string.location_notification_ticker))
+                        .setTicker(getString(R.string.accelerometer_notification_ticker))
                         .setPriority(NotificationCompat.PRIORITY_MIN)
                         .build()
         );

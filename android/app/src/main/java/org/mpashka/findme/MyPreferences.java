@@ -19,6 +19,10 @@ public class MyPreferences {
 //        Timber.d("Database path %s", deviceContext.getDatabasePath("aaa"));
     }
 
+    public SharedPreferences getPreferences() {
+        return preferences;
+    }
+
     public int getInt(int resourceNameId, int defaultValueId) {
         String stringVal = preferences.getString(deviceContext.getString(resourceNameId), null);
         return stringVal != null ? Integer.parseInt(stringVal) : deviceContext.getResources().getInteger(defaultValueId);

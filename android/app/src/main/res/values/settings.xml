@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="fcm_token">fcm_token</string>
+
     <string name="system_section">System</string>
     <string name="restart_check_id">restart_check_id</string>
     <string name="restart_check_title">Restart check</string>
@@ -9,7 +11,7 @@
     <string name="send_section">Send data</string>
     <string name="send_url_id">send_url_id</string>
     <string name="send_url_title">Server URL</string>
-    <string name="send_url_default">https://jsonplaceholder.typicode.com</string>
+    <string name="send_url_default">https://moukh.my.to</string>
     <string name="send_interval_id">send_interval_id</string>
     <string name="send_interval_title">Send each seconds</string>
     <integer name="send_interval_default">10</integer>
@@ -82,6 +84,9 @@
     <string name="location_notification_title">Location poll</string>
     <string name="location_notification_text">Location text</string>
     <string name="location_notification_ticker">Location ticker</string>
+    <string name="accelerometer_notification_title">Accelerometer poll</string>
+    <string name="accelerometer_notification_text">Accelerometer text</string>
+    <string name="accelerometer_notification_ticker">Accelerometer ticker</string>
     <integer name="accelerometer_notification_peer_id">2346</integer>
     <string name="accelerometer_notification_channel_id">accelerometer_channel_id</string>
     <string name="accelerometer_notification_channel_name">accelerometer_channel</string>
