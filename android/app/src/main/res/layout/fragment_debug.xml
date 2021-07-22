@@ -19,8 +19,17 @@
         android:id="@+id/btnDebug_fcmToken"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:text="FCM Token"
         app:layout_constraintStart_toStartOf="@+id/btnDebug_heart"
         app:layout_constraintTop_toBottomOf="@+id/btnDebug_heart" />
+
+    <Button
+        android:id="@+id/btnDebug_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Start"
+        app:layout_constraintStart_toStartOf="@+id/btnDebug_heart"
+        app:layout_constraintTop_toBottomOf="@+id/btnDebug_fcmToken" />
 </androidx.constraintlayout.widget.ConstraintLayout>

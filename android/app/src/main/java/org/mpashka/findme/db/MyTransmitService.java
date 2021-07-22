@@ -3,14 +3,16 @@ package org.mpashka.findme.db;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import org.jetbrains.annotations.NotNull;
 import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.R;
 import org.mpashka.findme.db.io.SaveApi;
 import org.mpashka.findme.db.io.SaveEntity;
 
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -36,7 +38,8 @@ public class MyTransmitService {
 
     private SaveApi saveApi;
 
-    private Instant nextCheck;
+//    private Instant nextCheck;
+    private long nextCheck;
 
     public MyTransmitService(LocationDao locationDao, AccelerometerDao accelerometerDao,
                              MyPreferences preferences, ConnectivityManager connectivityManager)
@@ -56,8 +59,10 @@ public class MyTransmitService {
 
     public Maybe<SaveEntity> checkAndTransmitLocations() {
         Timber.d("transmitLocations()");
-        Instant now = Instant.now();
-        if (nextCheck != null && nextCheck.isBefore(now)) {
+//        Instant now = Instant.now();
+//        if (nextCheck != null && nextCheck.isBefore(now)) {
+        long now = System.currentTimeMillis();
+        if (nextCheck > 0 && nextCheck < now) {
             Timber.d("not time to transmit yet");
             return Maybe.empty();
         }
@@ -70,7 +75,8 @@ public class MyTransmitService {
             return Maybe.empty();
         }
         int sendSec = preferences.getInt(R.string.send_interval_id, R.integer.send_interval_default);
-        nextCheck = now.plus(sendSec, ChronoUnit.SECONDS);
+//        nextCheck = now.plus(sendSec, ChronoUnit.SECONDS);
+        nextCheck = now + sendSec * 1000;
         return transmitLocations();
     }
 
@@ -108,10 +114,7 @@ public class MyTransmitService {
                         if (locations.isEmpty()) {
                             return Maybe.just(saveEntity);
                         } else {
-                            List<Long> locationIds = locations.stream()
-                                    .map(l -> l.time)
-                                    .collect(Collectors.toList());
-                            return locationDao.setSaved(locationIds)
+                            return locationDao.setSaved(convertList(locations, l -> l.time))
                                     .map(i -> saveEntity)
                                     .toMaybe();
                         }
@@ -121,10 +124,7 @@ public class MyTransmitService {
                         if (accelerations.isEmpty()) {
                             return Maybe.just(saveEntity);
                         } else {
-                            List<Long> accelerationIds = accelerations.stream()
-                                    .map(l -> l.time)
-                                    .collect(Collectors.toList());
-                            return accelerometerDao.setSaved(accelerationIds)
+                            return accelerometerDao.setSaved(convertList(accelerations, a -> a.time))
                                     .map(i -> saveEntity)
                                     .toMaybe();
                         }
@@ -139,6 +139,20 @@ public class MyTransmitService {
                 );
 */
         ;
+    }
+
+    @NotNull
+    private <T> List<Long> convertList(List<T> in, MyFunction<T, Long> function) {
+/*
+                            List<Long> locationIds = locations.stream()
+                                    .map(l -> l.time)
+                                    .collect(Collectors.toList());
+*/
+        List<Long> locationIds = new ArrayList<>(in.size());
+        for (T location : in) {
+            locationIds.add(function.apply(location));
+        }
+        return locationIds;
     }
 
     private Retrofit createRetrofitClient() {
@@ -184,4 +198,8 @@ public class MyTransmitService {
                 .build();
     }
 
+    public interface MyFunction<T, R> {
+        R apply(T t);
+    }
 }
+

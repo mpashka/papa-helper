@@ -3,6 +3,7 @@ package org.mpashka.findme;
 import android.content.Context;
 import android.database.SQLException;
 import android.net.ConnectivityManager;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.room.Room;
@@ -63,7 +64,9 @@ public class MyHiltModule {
     @Singleton
     public MyDb myDb(@ApplicationContext Context applicationContext) {
         Timber.d("myDb()");
-        Context deviceContext = applicationContext.createDeviceProtectedStorageContext();
+        Context deviceContext = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? applicationContext.createDeviceProtectedStorageContext()
+                : applicationContext;
         String dbName = applicationContext.getString(R.string.app_id) + "_db";
 /*
         File filePath = deviceContext.getDatabasePath(dbName);

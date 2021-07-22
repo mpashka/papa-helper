@@ -14,6 +14,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.mpashka.findme.MainActivity;
+import org.mpashka.findme.MyWorkManager;
 import org.mpashka.findme.R;
 import org.mpashka.findme.miband.MiBandManager;
 
@@ -38,6 +39,8 @@ public class DebugFragment extends Fragment {
                 .subscribe(i -> Timber.d("Mi band info %s", i)));
 
         root.findViewById(R.id.btnDebug_fcmToken).setOnClickListener(v -> getFirebaseToken());
+
+        root.findViewById(R.id.btnDebug_start).setOnClickListener(v -> MyWorkManager.getInstance().startServices(getContext()));
         return root;
     }
 

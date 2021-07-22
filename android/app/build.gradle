@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "org.mpashka.findme"
-        minSdkVersion 28
+        minSdkVersion 22
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"

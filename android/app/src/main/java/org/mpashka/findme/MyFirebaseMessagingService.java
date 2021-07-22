@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 import androidx.work.OneTimeWorkRequest;
@@ -167,14 +168,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         .setSound(defaultSoundUri)
                         .setContentIntent(pendingIntent);
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         // Since android Oreo notification channel is needed.
-        NotificationChannel channel = new NotificationChannel(channelId,
-                "Channel human readable title",
-                NotificationManager.IMPORTANCE_DEFAULT);
-        notificationManager.createNotificationChannel(channel);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
 
         notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
     }

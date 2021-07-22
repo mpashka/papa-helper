@@ -3,6 +3,7 @@ package org.mpashka.findme;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -14,6 +15,7 @@ import androidx.work.WorkerParameters;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import timber.log.Timber;
 
@@ -67,13 +69,21 @@ public class MyWorkManager {
         WorkManager workManager = WorkManager.getInstance(context);
         MyPreferences preferences = new MyPreferences(context);
         int restartCheckSec = preferences.getInt(R.string.restart_check_id, R.integer.restart_check_default);
+
+/*
         workManager.enqueueUniquePeriodicWork(context.getString(R.string.app_id) + RESTART_SERVICE, ExistingPeriodicWorkPolicy.KEEP,
                 new PeriodicWorkRequest.Builder(RestartWorker.class, Duration.of(restartCheckSec, ChronoUnit.SECONDS)).build());
+*/
+        workManager.enqueueUniquePeriodicWork(context.getString(R.string.app_id) + RESTART_SERVICE, ExistingPeriodicWorkPolicy.KEEP,
+                new PeriodicWorkRequest.Builder(RestartWorker.class, restartCheckSec, TimeUnit.SECONDS).build());
 
-        context.startForegroundService(new Intent(context, MyLocationService.class));
-        context.startForegroundService(new Intent(context, MyAccelerometerService.class));
-//        context.startService(new Intent(context, MyLocationService.class));
-//        context.startService(new Intent(context, MyAccelerometerService.class));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            context.startForegroundService(new Intent(context, MyLocationService.class));
+            context.startForegroundService(new Intent(context, MyAccelerometerService.class));
+        } else {
+            context.startService(new Intent(context, MyLocationService.class));
+            context.startService(new Intent(context, MyAccelerometerService.class));
+        }
     }
 
     public void rescheduleAccelerometerService(Context context) {

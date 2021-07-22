@@ -3,6 +3,7 @@ package org.mpashka.findme;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.os.Build;
 import android.util.TypedValue;
 
 
@@ -13,8 +14,11 @@ public class MyPreferences {
     private Context deviceContext;
     private SharedPreferences preferences;
 
-    public MyPreferences(Context context) {
-        deviceContext = context.createDeviceProtectedStorageContext();
+    public MyPreferences(Context applicationContext) {
+        deviceContext = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
+                ? applicationContext.createDeviceProtectedStorageContext()
+                : applicationContext;
+
         preferences = deviceContext.getSharedPreferences(SETTINGS_NAME, Context.MODE_PRIVATE);
 //        Timber.d("Database path %s", deviceContext.getDatabasePath("aaa"));
     }

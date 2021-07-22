@@ -1,43 +1,39 @@
 package org.mpashka.findme;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
-import androidx.room.Insert;
 
 import org.mpashka.findme.db.LocationDao;
 import org.mpashka.findme.db.LocationEntity;
 import org.mpashka.findme.db.MyTransmitService;
 import org.mpashka.findme.miband.MiBandManager;
 
-import java.time.Instant;
-
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
 @AndroidEntryPoint
 public class MyLocationService extends Service {
+
+    private static final MiBandManager.MiBandInfo EMPTY = new MiBandManager.MiBandInfo();
 
     @Inject
     MyTransmitService transmitService;
@@ -53,32 +49,39 @@ public class MyLocationService extends Service {
     public void onCreate() {
         Timber.d("onCreate");
         super.onCreate();
-        String channelId = getString(R.string.location_notification_channel_id);
-        NotificationChannel notificationChannel = new NotificationChannel(channelId,
-                getString(R.string.location_notification_channel_name),
-                NotificationManager.IMPORTANCE_NONE);
-        notificationChannel.setLightColor(Color.BLUE);
-        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.createNotificationChannel(notificationChannel);
-
-        startForeground(getResources().getInteger(R.integer.location_notification_peer_id),
-                new NotificationCompat.Builder(this, channelId)
-                        .setOngoing(true)
-                        .setContentTitle(getString(R.string.location_notification_title))
-                        .setContentText(getString(R.string.location_notification_text))
-                        .setSmallIcon(R.drawable.ic_notification_location)
-                        .setTicker(getString(R.string.location_notification_ticker))
-                        .setPriority(NotificationCompat.PRIORITY_MIN)
-                        .build()
-        );
+        startForeground();
 
         isRunning = false;
     }
 
+    private void startForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = getString(R.string.location_notification_channel_id);
+            NotificationChannel notificationChannel = new NotificationChannel(channelId,
+                    getString(R.string.location_notification_channel_name),
+                    NotificationManager.IMPORTANCE_NONE);
+            notificationChannel.setLightColor(Color.BLUE);
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(notificationChannel);
+
+            startForeground(getResources().getInteger(R.integer.location_notification_peer_id),
+                    new NotificationCompat.Builder(this, channelId)
+                            .setOngoing(true)
+                            .setContentTitle(getString(R.string.location_notification_title))
+                            .setContentText(getString(R.string.location_notification_text))
+                            .setSmallIcon(R.drawable.ic_notification_location)
+                            .setTicker(getString(R.string.location_notification_ticker))
+                            .setPriority(NotificationCompat.PRIORITY_MIN)
+                            .build()
+            );
+        }
+    }
+
     public int onStartCommand(Intent intent, int flags, int startId) {
         Timber.d("onStartCommand");
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Timber.d("Not enough permissions");
             Context context = getApplicationContext();
@@ -110,9 +113,11 @@ public class MyLocationService extends Service {
             //noinspection CheckResult,ResultOfMethodCallIgnored
             miBandManager
                     .readMiBandInfo()
+                    .onErrorReturnItem(EMPTY)
                     .observeOn(Schedulers.io())
                     .flatMap(miBandInfo -> locationDao.insert(new LocationEntity()
-                            .setTime(Instant.now().toEpochMilli())
+                            .setTime(/*Instant.now().toEpochMilli()*/
+                                    System.currentTimeMillis())
                             .setLocation(location)
                             .setBattery(Utils.readChargeLevel(getApplicationContext()))
                             .setMiBattery(miBandInfo.getBattery())

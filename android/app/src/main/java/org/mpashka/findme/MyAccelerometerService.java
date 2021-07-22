@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,6 +15,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener2;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
@@ -22,7 +24,6 @@ import org.mpashka.findme.db.AccelerometerDao;
 import org.mpashka.findme.db.AccelerometerEntity;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -54,25 +55,7 @@ public class MyAccelerometerService extends Service {
     public void onCreate() {
         Timber.d("onCreate");
         super.onCreate();
-        String channelId = getString(R.string.accelerometer_notification_channel_id);
-        NotificationChannel notificationChannel = new NotificationChannel(channelId,
-                getString(R.string.accelerometer_notification_channel_name),
-                NotificationManager.IMPORTANCE_NONE);
-        notificationChannel.setLightColor(Color.BLUE);
-        notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.createNotificationChannel(notificationChannel);
-
-        startForeground(getResources().getInteger(R.integer.accelerometer_notification_peer_id),
-                new NotificationCompat.Builder(this, channelId)
-                        .setOngoing(true)
-                        .setContentTitle(getString(R.string.accelerometer_notification_title))
-                        .setContentText(getString(R.string.accelerometer_notification_text))
-                        .setSmallIcon(R.drawable.ic_notification_accelerometer)
-                        .setTicker(getString(R.string.accelerometer_notification_ticker))
-                        .setPriority(NotificationCompat.PRIORITY_MIN)
-                        .build()
-        );
+        startForeground();
 
         timer = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "AccelerometerTimer"));
         preferences = new MyPreferences(this);
@@ -83,6 +66,56 @@ public class MyAccelerometerService extends Service {
                 Timber.e(e, "Error query db");
             }
         };
+    }
+
+    private void startForeground() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundNew();
+        } else {
+            startForegroundOld();
+        }
+    }
+
+    private void startForegroundOld() {
+/*
+        PendingIntent mainIntent = PendingIntent.getActivity(this, 0, YourApplication.getInstance().downloadService.mainIntent, 0);
+        notification = new NotificationCompat.Builder(YourApplication.getInstance())
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setContentTitle(getString(R.string.accelerometer_notification_title))
+                .setContentText(getString(R.string.accelerometer_notification_text))
+                .setSmallIcon(R.drawable.ic_notification_accelerometer)
+                .setTicker(getString(R.string.accelerometer_notification_ticker))
+                .setPriority(NotificationCompat.PRIORITY_MIN)
+                .setContentIntent(mainIntent)
+                .setAutoCancel(true)
+                .setOngoing(true)
+                .build();
+        startForeground(mNotificationId, notification);
+*/
+    }
+
+    private void startForegroundNew() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = getString(R.string.accelerometer_notification_channel_id);
+            NotificationChannel notificationChannel = new NotificationChannel(channelId,
+                    getString(R.string.accelerometer_notification_channel_name),
+                    NotificationManager.IMPORTANCE_NONE);
+            notificationChannel.setLightColor(Color.BLUE);
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(notificationChannel);
+
+            startForeground(getResources().getInteger(R.integer.accelerometer_notification_peer_id),
+                    new NotificationCompat.Builder(this, channelId)
+                            .setOngoing(true)
+                            .setContentTitle(getString(R.string.accelerometer_notification_title))
+                            .setContentText(getString(R.string.accelerometer_notification_text))
+                            .setSmallIcon(R.drawable.ic_notification_accelerometer)
+                            .setTicker(getString(R.string.accelerometer_notification_ticker))
+                            .setPriority(NotificationCompat.PRIORITY_MIN)
+                            .build()
+            );
+        }
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -115,7 +148,8 @@ public class MyAccelerometerService extends Service {
     }
 
     class AccelerationListener implements SensorEventListener2 {
-        private Instant endTime;
+//        private Instant endTime;
+        private long endTime;
         private int count;
         private double sum;
         private double max;
@@ -138,7 +172,8 @@ public class MyAccelerometerService extends Service {
             count++;
             sum +=  value;
             max = Math.max(max, value);
-            if (Instant.now().isAfter(endTime)) {
+//            if (Instant.now().isAfter(endTime)) {
+            if (System.currentTimeMillis() > endTime) {
                 Timber.d("Stop sensors");
                 stopListenAndReport(max, sum / count);
             }
@@ -154,14 +189,23 @@ public class MyAccelerometerService extends Service {
             accelerationListener.reset();
 //        int pollPeriodSec = devicePreferences.getInt(getString(R.string.poll_period_id), getResources().getInteger(R.integer.poll_period_default));
             int pollTimeSec = preferences.getInt(R.string.poll_time_id, R.integer.poll_time_default);
-            endTime = Instant.now().plus(Duration.of(pollTimeSec, ChronoUnit.SECONDS));
+//            endTime = Instant.now().plus(Duration.of(pollTimeSec, ChronoUnit.SECONDS));
+            endTime = System.currentTimeMillis() + pollTimeSec * 1000;
             int pollSampling = preferences.getInt(R.string.poll_sampling_id, R.integer.poll_sampling_default);
 
             SensorManager sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
             sensorManager.unregisterListener(accelerationListener);
             List<Sensor> sensors = sensorManager.getSensorList(Sensor.TYPE_LINEAR_ACCELERATION);
             // SensorManager.SENSOR_DELAY_NORMAL
-            sensors.forEach(s -> sensorManager.registerListener(accelerationListener, s, pollSampling));
+//            sensors.forEach(s -> sensorManager.registerListener(accelerationListener, s, pollSampling));
+            for (Sensor sensor : sensors) {
+//                Timber.d("Sensor: %s", sensor);
+                try {
+                    sensorManager.registerListener(accelerationListener, sensor, pollSampling);
+                } catch (Exception e) {
+                    Timber.e(e, "Error start listen for sensor %s", sensor);
+                }
+            }
         }
 
         public void stopListen() {
@@ -176,7 +220,8 @@ public class MyAccelerometerService extends Service {
             try {
                 //noinspection CheckResult
                 accelerometerDao.insert(new AccelerometerEntity()
-                        .setTime(Instant.now().toEpochMilli())
+//                        .setTime(Instant.now().toEpochMilli())
+                        .setTime(System.currentTimeMillis())
                         .setAverage(avg)
                         .setMaximum(max)
                         .setBattery(Utils.readChargeLevel(getApplicationContext())))
