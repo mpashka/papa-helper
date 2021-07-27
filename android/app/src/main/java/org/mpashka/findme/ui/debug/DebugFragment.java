@@ -9,19 +9,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import org.mpashka.findme.MainActivity;
-import org.mpashka.findme.MyWorkManager;
+import org.mpashka.findme.services.MyWorkManager;
 import org.mpashka.findme.R;
 import org.mpashka.findme.miband.MiBandManager;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import timber.log.Timber;
 
 @AndroidEntryPoint
@@ -40,7 +36,7 @@ public class DebugFragment extends Fragment {
 
         root.findViewById(R.id.btnDebug_fcmToken).setOnClickListener(v -> getFirebaseToken());
 
-        root.findViewById(R.id.btnDebug_start).setOnClickListener(v -> MyWorkManager.getInstance().startServices(getContext()));
+        root.findViewById(R.id.btnDebug_start).setOnClickListener(v -> MyWorkManager.getInstance().startWorkerManager(getContext()));
         return root;
     }
 

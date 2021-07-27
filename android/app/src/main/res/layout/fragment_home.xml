@@ -6,50 +6,37 @@
     android:layout_height="match_parent"
     tools:context=".ui.home.HomeFragment">
 
+    <Button
+        android:id="@+id/home_locate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/home_locate"
+        app:layout_constraintStart_toStartOf="@+id/text_home_locations_title"
+        tools:layout_editor_absoluteY="222dp" />
+
     <TextView
         android:id="@+id/text_home_locations_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginTop="44dp"
+        android:layout_marginTop="40dp"
+        android:text="@string/home_locations"
         android:textAlignment="center"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:text="@string/home_locations" />
-
-    <TextView
-        android:id="@+id/text_home_accelerations_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="44dp"
-        app:layout_constraintStart_toStartOf="@+id/text_home_locations_title"
-        app:layout_constraintTop_toBottomOf="@+id/text_home_locations_title"
-        android:text="@string/home_accelerations" />
+        app:layout_constraintStart_toStartOf="@+id/text_home_started_title"
+        app:layout_constraintTop_toBottomOf="@+id/text_home_started_title" />
 
     <TextView
         android:id="@+id/text_home_locations_saved"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
         android:text="0"
-        app:layout_constraintStart_toEndOf="@+id/text_home_locations_title"
-        app:layout_constraintTop_toTopOf="@+id/text_home_locations_title"
-        />
-
-    <TextView
-        android:id="@+id/text_home_accelerations_saved"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        app:layout_constraintStart_toStartOf="@+id/text_home_locations_saved"
-        app:layout_constraintTop_toTopOf="@+id/text_home_accelerations_title"
-        />
+        app:layout_constraintStart_toStartOf="@+id/text_home_started_value"
+        app:layout_constraintTop_toTopOf="@+id/text_home_locations_title" />
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="24dp"
         android:text="/"
         app:layout_constraintStart_toEndOf="@+id/text_home_locations_saved"
         app:layout_constraintTop_toTopOf="@+id/text_home_locations_title" />
@@ -58,36 +45,35 @@
         android:id="@+id/text_home_locations_unsaved"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="24dp"
         android:text="0"
         app:layout_constraintStart_toEndOf="@+id/textView2"
         app:layout_constraintTop_toTopOf="@+id/text_home_locations_title" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="/"
-        app:layout_constraintStart_toEndOf="@+id/text_home_accelerations_saved"
-        app:layout_constraintTop_toTopOf="@+id/text_home_accelerations_title" />
-
-    <TextView
-        android:id="@+id/text_home_accelerations_unsaved"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="0"
-        app:layout_constraintStart_toEndOf="@+id/textView4"
-        app:layout_constraintTop_toTopOf="@+id/text_home_accelerations_title" />
 
     <Button
         android:id="@+id/home_send"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
+        android:layout_marginStart="20dp"
         android:text="@string/home_send"
-        app:layout_constraintStart_toStartOf="@+id/text_home_accelerations_title"
-        app:layout_constraintTop_toBottomOf="@+id/text_home_accelerations_title" />
+        app:layout_constraintStart_toEndOf="@+id/home_locate"
+        app:layout_constraintTop_toTopOf="@+id/home_locate" />
+
+    <TextView
+        android:id="@+id/text_home_started_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/home_started"
+        tools:layout_editor_absoluteX="18dp"
+        tools:layout_editor_absoluteY="69dp" />
+
+    <TextView
+        android:id="@+id/text_home_started_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:text="TextView"
+        app:layout_constraintStart_toEndOf="@+id/text_home_started_title"
+        app:layout_constraintTop_toTopOf="@+id/text_home_started_title" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

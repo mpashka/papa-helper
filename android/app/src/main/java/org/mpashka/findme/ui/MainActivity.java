@@ -1,10 +1,8 @@
-package org.mpashka.findme;
+package org.mpashka.findme.ui;
 
 import android.os.Bundle;
 import android.view.Menu;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.navigation.NavController;
@@ -15,11 +13,20 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import org.mpashka.findme.R;
+import org.mpashka.findme.services.MyWorkManager;
+import org.mpashka.findme.ui.permissions.PermissionsFragment;
+
+import javax.inject.Inject;
+
 import dagger.hilt.android.AndroidEntryPoint;
 import timber.log.Timber;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
+
+    @Inject
+    MyWorkManager myWorkManager;
 
     private AppBarConfiguration mAppBarConfiguration;
 
@@ -47,7 +54,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
-        MyWorkManager.getInstance().startServices(this);
+        if (!myWorkManager.checkPermissions()) {
+//            navigationView.getMenu().getItem(1).setChecked(true);
+            navigationView.setCheckedItem(R.id.nav_permissions);
+        }
+        myWorkManager.startIfNeeded();
     }
 
     @Override

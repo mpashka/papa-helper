@@ -24,6 +24,13 @@
             app:useSimpleSummaryProvider="true"
             app:defaultValue="@integer/send_interval_default"/>
 
+        <EditTextPreference
+            app:key="@string/send_retry_id"
+            app:title="@string/send_retry_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/send_retry_default"/>
+
         <SwitchPreference
             app:key="@string/send_debug_http_id"
             app:title="@string/send_debug_http_title"
@@ -31,62 +38,111 @@
             app:defaultValue="@bool/send_debug_http_default"/>
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/ui_section">
-        <EditTextPreference
-            app:key="@string/ui_check_id"
-            app:title="@string/ui_check_title"
-            android:inputType="number"
+    <PreferenceCategory app:title="@string/accel_poll_section">
+        <SwitchPreference
+            app:key="@string/accel_provider_enabled_id"
+            app:title="@string/accel_provider_enabled_title"
+            app:defaultValue="@bool/accel_provider_enabled_default"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@integer/ui_check_default"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory app:title="@string/poll_section">
+            />
 
         <EditTextPreference
-            app:key="@string/poll_period_id"
-            app:title="@string/poll_period_title"
+            app:key="@string/accel_poll_time_id"
+            app:title="@string/accel_poll_time_title"
             android:inputType="number"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@integer/poll_period_default"/>
-
-        <EditTextPreference
-            app:key="@string/poll_time_id"
-            app:title="@string/poll_time_title"
-            android:inputType="number"
-            app:useSimpleSummaryProvider="true"
-            app:defaultValue="@integer/poll_time_default"/>
+            app:defaultValue="@integer/accel_poll_time_default"/>
 
         <ListPreference
-            app:key="@string/poll_sampling_id"
-            app:defaultValue="@integer/poll_sampling_default"
-            app:entries="@array/poll_sampling_entries"
-            app:entryValues="@array/poll_sampling_values"
-            app:title="@string/poll_sampling_title"
+            app:key="@string/accel_poll_sampling_id"
+            app:defaultValue="@integer/accel_poll_sampling_default"
+            app:entries="@array/accel_poll_sampling_entries"
+            app:entryValues="@array/accel_poll_sampling_values"
+            app:title="@string/accel_poll_sampling_title"
             app:useSimpleSummaryProvider="true" />
+
+        <SwitchPreference
+            app:key="@string/activity_provider_enabled_id"
+            app:title="@string/activity_provider_enabled_title"
+            app:defaultValue="@bool/activity_provider_enabled_default"
+            app:useSimpleSummaryProvider="true"
+            />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/location_section">
+    <PreferenceCategory app:title="@string/location_gen_section">
+        <SwitchPreference
+            app:key="@string/location_gen_provider_enabled_id"
+            app:title="@string/location_gen_provider_enabled_title"
+            app:defaultValue="@bool/location_gen_provider_enabled_default"
+            app:useSimpleSummaryProvider="true"
+            />
+
         <ListPreference
-            app:key="@string/location_provider_id"
-            app:defaultValue="@string/location_provider_default"
-            app:entries="@array/location_provider_entries"
-            app:entryValues="@array/location_provider_values"
-            app:title="@string/location_provider_title"
+            app:key="@string/location_gen_provider_id"
+            app:defaultValue="@string/location_gen_provider_default"
+            app:entries="@array/location_gen_provider_entries"
+            app:entryValues="@array/location_gen_provider_values"
+            app:title="@string/location_gen_provider_title"
             app:useSimpleSummaryProvider="true" />
 
         <EditTextPreference
-            app:key="@string/location_min_distance_id"
-            app:title="@string/location_min_distance_title"
+            app:key="@string/location_gen_min_distance_id"
+            app:title="@string/location_gen_min_distance_title"
             android:inputType="numberDecimal"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@dimen/location_min_distance_default"/>
+            app:defaultValue="@dimen/location_gen_min_distance_default"/>
 
         <EditTextPreference
-            app:key="@string/location_time_id"
-            app:title="@string/location_time_title"
+            app:key="@string/location_gen_time_id"
+            app:title="@string/location_gen_time_title"
             android:inputType="number"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@integer/location_time_default"/>
+            app:defaultValue="@integer/location_gen_time_default"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/location_fuse_section">
+        <SwitchPreference
+            app:key="@string/location_fuse_provider_enabled_id"
+            app:title="@string/location_fuse_provider_enabled_title"
+            app:defaultValue="@bool/location_fuse_provider_enabled_default"
+            app:useSimpleSummaryProvider="true"
+            />
+
+        <EditTextPreference
+            app:key="@string/restart_location_fuse_max_time_id"
+            app:title="@string/restart_location_fuse_max_time_title"
+            android:inputType="numberDecimal"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@dimen/restart_location_fuse_max_time_default"/>
+
+        <ListPreference
+            app:key="@string/location_fuse_priority_id"
+            app:defaultValue="@integer/location_fuse_priority_default"
+            app:entries="@array/location_fuse_priority_entries"
+            app:entryValues="@array/location_fuse_priority_values"
+            app:title="@string/location_fuse_priority_title"
+            app:useSimpleSummaryProvider="true" />
+
+        <EditTextPreference
+            app:key="@string/location_fuse_min_distance_id"
+            app:title="@string/location_fuse_min_distance_title"
+            android:inputType="numberDecimal"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@dimen/location_fuse_min_distance_default"/>
+
+        <EditTextPreference
+            app:key="@string/location_fuse_time_id"
+            app:title="@string/location_fuse_time_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/location_fuse_time_default"/>
+
+        <EditTextPreference
+            app:key="@string/location_fuse_min_time_id"
+            app:title="@string/location_fuse_min_time_title"
+            android:inputType="number"
+            app:useSimpleSummaryProvider="true"
+            app:defaultValue="@integer/location_fuse_min_time_default"/>
     </PreferenceCategory>
 </PreferenceScreen>

@@ -86,6 +86,10 @@ public class MiBandManager {
             return heartRateCount > 0 ? heartRateSum / heartRateCount : -1;
         }
 
+        public boolean isEmpty() {
+            return battery == -1 && steps == -1 && heartRateCount == 0;
+        }
+
         @Override
         public String toString() {
             return "MiBandInfo{" +

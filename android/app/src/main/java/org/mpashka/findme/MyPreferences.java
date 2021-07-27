@@ -9,7 +9,7 @@ import android.util.TypedValue;
 
 public class MyPreferences {
 
-    public static final String SETTINGS_NAME = MyWorkManager.NAME + "_preferences";
+    public static final String SETTINGS_NAME = MyApplication.NAME + "_preferences";
 
     private Context deviceContext;
     private SharedPreferences preferences;

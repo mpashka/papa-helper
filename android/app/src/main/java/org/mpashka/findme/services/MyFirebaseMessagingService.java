@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.mpashka.findme;
+package org.mpashka.findme.services;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -26,24 +26,16 @@ import android.net.Uri;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.mpashka.findme.ui.MainActivity;
+import org.mpashka.findme.R;
+
 import timber.log.Timber;
 
 /**
- * NOTE: There can only be one service in each app that receives FCM messages. If multiple
- * are declared in the Manifest then the first one will be chosen.
- *
- * In order to make this Java sample functional, you must remove the following from the Kotlin messaging
- * service in the AndroidManifest.xml:
- *
- * <intent-filter>
- *   <action android:name="com.google.firebase.MESSAGING_EVENT" />
- * </intent-filter>
  */
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
@@ -75,10 +67,10 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use WorkManager.
-                scheduleJob();
+//                scheduleJob();
             } else {
                 // Handle message within 10 seconds
-                handleNow();
+//                handleNow();
             }
 
         }
@@ -117,24 +109,6 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     // [END on_new_token]
 
     /**
-     * Schedule async work using WorkManager.
-     */
-    private void scheduleJob() {
-        // [START dispatch_job]
-        OneTimeWorkRequest work = new OneTimeWorkRequest.Builder(MyWorker.class)
-                .build();
-        WorkManager.getInstance(this).beginWith(work).enqueue();
-        // [END dispatch_job]
-    }
-
-    /**
-     * Handle time allotted to BroadcastReceivers.
-     */
-    private void handleNow() {
-        Timber.d("Short lived task is done.");
-    }
-
-    /**
      * Persist token to third-party servers.
      *
      * Modify this method to associate the user's FCM registration token with any
@@ -144,6 +118,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      */
     private void sendRegistrationToServer(String token) {
         // TODO: Implement this method to send token to your app server.
+        Timber.i("Sending FCM Token to server %s", token);
     }
 
     /**

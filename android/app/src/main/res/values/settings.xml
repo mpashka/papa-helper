@@ -5,37 +5,35 @@
 
     <string name="system_section">System</string>
     <string name="restart_check_id">restart_check_id</string>
-    <string name="restart_check_title">Restart check</string>
-    <integer name="restart_check_default">12000000</integer>
+    <string name="restart_check_title">Restart check minutes</string>
+    <integer name="restart_check_default">30</integer>
 
     <string name="send_section">Send data</string>
     <string name="send_url_id">send_url_id</string>
     <string name="send_url_title">Server URL</string>
     <string name="send_url_default">https://moukh.my.to</string>
     <string name="send_interval_id">send_interval_id</string>
-    <string name="send_interval_title">Send each seconds</string>
+    <string name="send_interval_title">Send no often than seconds</string>
     <integer name="send_interval_default">10</integer>
+    <string name="send_retry_id">send_retry_id</string>
+    <string name="send_retry_title">Retry count</string>
+    <integer name="send_retry_default">3</integer>
     <string name="send_debug_http_id">send_debug_http_id</string>
     <string name="send_debug_http_title">Debug http requests</string>
     <bool name="send_debug_http_default">true</bool>
 
-    <string name="ui_section">UI</string>
-    <string name="ui_check_id">ui_check_id</string>
-    <string name="ui_check_title">UI check</string>
-    <integer name="ui_check_default">10</integer>
+    <string name="accel_poll_section">Accelerometer</string>
+    <string name="accel_provider_enabled_id">accel_provider_enabled_id</string>
+    <string name="accel_provider_enabled_title">Enable accelerometer check</string>
+    <bool name="accel_provider_enabled_default">true</bool>
+    <string name="accel_poll_time_id">accel_poll_time_id</string>
+    <string name="accel_poll_time_title">Sensors poll time, sec</string>
+    <integer name="accel_poll_time_default">5</integer>
 
-    <string name="poll_section">Accelerometer</string>
-    <string name="poll_period_id">poll_period_id</string>
-    <string name="poll_period_title">Sensors poll period, sec</string>
-    <integer name="poll_period_default">120</integer>
-    <string name="poll_time_id">poll_time_id</string>
-    <string name="poll_time_title">Sensors poll time, sec</string>
-    <integer name="poll_time_default">5</integer>
-
-    <string name="poll_sampling_id">poll_sampling_id</string>
-    <string name="poll_sampling_title">Sensors sampling</string>
-    <integer name="poll_sampling_default">3</integer>
-    <string-array name="poll_sampling_entries">
+    <string name="accel_poll_sampling_id">poll_sampling_id</string>
+    <string name="accel_poll_sampling_title">Sensors sampling</string>
+    <integer name="accel_poll_sampling_default">3</integer>
+    <string-array name="accel_poll_sampling_entries">
         <item>Fastest</item>
         <item>Game</item>
         <item>UI</item>
@@ -43,7 +41,7 @@
         <item>Off</item>
     </string-array>
 
-    <string-array name="poll_sampling_values">
+    <string-array name="accel_poll_sampling_values">
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -51,44 +49,111 @@
         <item>1000</item>
     </string-array>
 
-    <string name="location_section">Location</string>
-    <string name="location_provider_id">location_id</string>
-    <string name="location_provider_title">Location provider</string>
-    <string name="location_provider_default">network</string>
-    <string name="location_permission_on">Location permission granted</string>
-    <string name="location_permission_off">Give app location permission</string>
-    <string-array name="location_provider_entries">
+    <string name="activity_provider_enabled_id">activity_provider_enabled_id</string>
+    <string name="activity_provider_enabled_title">Listen activity changes</string>
+    <bool name="activity_provider_enabled_default">true</bool>
+
+    <string name="location_gen_section">Location</string>
+    <string name="location_gen_provider_enabled_id">location_enabled_id</string>
+    <bool name="location_gen_provider_enabled_default">true</bool>
+    <string name="location_gen_provider_enabled_title">Location enabled</string>
+    <string name="location_gen_provider_id">location_gen_provider_id</string>
+    <string name="location_gen_provider_title">Location provider</string>
+    <string name="location_gen_provider_default">network</string>
+    <string-array name="location_gen_provider_entries">
         <item>Fused</item>
         <item>GPS</item>
         <item>Network</item>
         <item>Passive</item>
-        <item>Off</item>
     </string-array>
 
-    <string-array name="location_provider_values">
+    <string-array name="location_gen_provider_values">
         <item>fused</item>
         <item>gps</item>
         <item>network</item>
         <item>passive</item>
     </string-array>
 
-    <string name="location_min_distance_id">location_min_distance_id</string>
-    <string name="location_min_distance_title">Min distance to report notification</string>
-    <item name="location_min_distance_default" type="dimen" format="float">10</item>
-    <string name="location_time_id">location_time_id</string>
-    <string name="location_time_title">Min time to check location</string>
-    <integer name="location_time_default">10</integer>
+    <string name="location_gen_min_distance_id">location_min_distance_id</string>
+    <string name="location_gen_min_distance_title">Min distance to report notification</string>
+    <item name="location_gen_min_distance_default" type="dimen" format="float">10</item>
+    <string name="location_gen_time_id">location_time_id</string>
+    <string name="location_gen_time_title">Min time to check location</string>
+    <integer name="location_gen_time_default">5</integer>
+
+    <string name="location_fuse_section">Location fuse</string>
+    <string name="location_fuse_provider_enabled_id">location_fuse_enabled_id</string>
+    <bool name="location_fuse_provider_enabled_default">true</bool>
+    <string name="location_fuse_provider_enabled_title">Location fuse enabled</string>
+    <string name="location_fuse_min_distance_id">location_fuse_min_distance_id</string>
+    <string name="location_fuse_min_distance_title">Min distance to report notification</string>
+    <item name="location_fuse_min_distance_default" type="dimen" format="float">10</item>
+
+    <!-- This is for work manager -->
+    <string name="restart_location_fuse_max_time_id">restart_location_fuse_max_time_id</string>
+    <string name="restart_location_fuse_max_time_title">Work manager - Max time between locations, minutes</string>
+    <item name="restart_location_fuse_max_time_default" type="dimen" format="float">20</item>
+
+    <string name="location_fuse_priority_id">location_fuse_priority_id</string>
+    <string name="location_fuse_priority_title">Location priority</string>
+    <integer name="location_fuse_priority_default">102</integer>
+    <string-array name="location_fuse_priority_entries">
+        <item>High accuracy</item>
+        <item>Balanced power accuracy</item>
+        <item>Low power</item>
+        <item>No power</item>
+    </string-array>
+
+    <integer-array name="location_fuse_priority_values">
+        <item>100</item>
+        <item>102</item>
+        <item>104</item>
+        <item>105</item>
+    </integer-array>
+    <string name="location_fuse_time_id">location_fuse_time_id</string>
+    <string name="location_fuse_time_title">Time to check location, minutes</string>
+    <integer name="location_fuse_time_default">5</integer>
+    <string name="location_fuse_min_time_id">location_fuse_time_id</string>
+    <string name="location_fuse_min_time_title">Min time to check location, seconds</string>
+    <integer name="location_fuse_min_time_default">60</integer>
+
+    <!--
     <integer name="location_notification_peer_id">2345</integer>
     <string name="location_notification_channel_id">location_channel_id</string>
     <string name="location_notification_channel_name">location_channel</string>
     <string name="location_notification_title">Location poll</string>
     <string name="location_notification_text">Location text</string>
     <string name="location_notification_ticker">Location ticker</string>
+
     <string name="accelerometer_notification_title">Accelerometer poll</string>
     <string name="accelerometer_notification_text">Accelerometer text</string>
     <string name="accelerometer_notification_ticker">Accelerometer ticker</string>
     <integer name="accelerometer_notification_peer_id">2346</integer>
     <string name="accelerometer_notification_channel_id">accelerometer_channel_id</string>
     <string name="accelerometer_notification_channel_name">accelerometer_channel</string>
+    -->
+
+    <string name="permission_category">Permissions</string>
+    <string name="permission_location_fine_id">location_fine_id</string>
+    <string name="permission_location_fine_title">Location provider fine</string>
+    <string name="permission_location_coarse_id">location_coarse_id</string>
+    <string name="permission_location_coarse_title">Location provider coarse</string>
+    <string name="permission_location_background_id">location_background_id</string>
+    <string name="permission_location_background_title">Location provider background</string>
+    <string name="permission_activity_recognition_id">permission_activity_recognition_id</string>
+    <string name="permission_activity_recognition_title">GMS activity recognition</string>
+    <string name="permission_on">Permission granted</string>
+    <string name="permission_off">Permission not granted</string>
+    <string name="predicates_category">Predefined settings</string>
+    <string name="predicate_background_restricted_id">predicate_background_restricted_id</string>
+    <string name="predicate_background_restricted_title">Activity background restricted</string>
+    <string name="predicate_lock_task_mode_id">predicate_lock_tesk_mode_id</string>
+    <string name="predicate_lock_task_mode_title">Lock task mode</string>
+    <string name="predicate_low_memory_kill_report_supported_id">predicate_low_memory_kill_report_supported</string>
+    <string name="predicate_low_memory_kill_report_supported_title">Activity Low Memory Kill Report Supported</string>
+    <string name="predicate_low_ram_device_id">predicate_low_ram_device_id</string>
+    <string name="predicate_low_ram_device_title">Activity Low RAM Device</string>
+    <string name="predicate_on">On</string>
+    <string name="predicate_off">Off</string>
 
 </resources>

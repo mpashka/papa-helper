@@ -19,20 +19,20 @@ public interface LocationDao {
     @Query("SELECT * FROM location")
     List<LocationEntity> getAll();
 
-    @Query("SELECT * FROM location WHERE saved = 0")
-    Single<List<LocationEntity>> loadUnsaved();
+    @Query("SELECT * FROM location WHERE transmitted = 0")
+    Single<List<LocationEntity>> loadPending();
 
-    @Query("UPDATE location SET saved = 1 WHERE time in (:times)")
-    Single<Integer> setSaved(Collection<Long> times);
+    @Query("UPDATE location SET transmitted = 1 WHERE time in (:times)")
+    Single<Integer> setTransmitted(Collection<Long> times);
 
     @Insert
     Single<Long> insert(LocationEntity locationEntity);
 
-    @Query("SELECT COUNT(*) FROM location WHERE SAVED = 0")
-    int getUnsavedCount();
+    @Query("SELECT COUNT(*) FROM location WHERE transmitted = 0")
+    Single<Long> getPendingCount();
 
-    @Query("SELECT COUNT(*) FROM location WHERE SAVED = 1")
-    int getSavedCount();
+    @Query("SELECT COUNT(*) FROM location")
+    Single<Long> getTotalCount();
 
 /*
     @Insert

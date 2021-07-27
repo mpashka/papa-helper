@@ -5,12 +5,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
 
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Utils {
 
@@ -26,4 +24,31 @@ public class Utils {
         return isCharging ? -1 : level;
     }
 
+    @NotNull
+    public static <T, R> List<R> convertList(List<T> in, MyFunction<T, R> function) {
+        List<R> locationIds = new ArrayList<>(in.size());
+        for (T location : in) {
+            locationIds.add(function.apply(location));
+        }
+        return locationIds;
+    }
+
+    public static <T> boolean anyMatchList(List<T> in, MyPredicate<T> predicate) {
+        for (T locationPermission : in) {
+            if (predicate.test(locationPermission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @FunctionalInterface
+    public interface MyFunction<T, R> {
+        R apply(T t);
+    }
+
+    @FunctionalInterface
+    public interface MyPredicate<T> {
+        boolean test(T t);
+    }
 }

@@ -12,10 +12,25 @@ import com.google.gson.annotations.SerializedName;
 @Entity(tableName = "location")
 public class LocationEntity {
     @PrimaryKey
+    @ColumnInfo(name = "work_time")
+    @SerializedName("work_time")
+    @Expose
+    public long workTime;
+
     @ColumnInfo(name = "time")
     @SerializedName("time")
     @Expose
     public long time;
+
+    @ColumnInfo(name = "work_provider")
+    @SerializedName("work_provider")
+    @Expose
+    public String workProvider;
+
+    @ColumnInfo(name = "provider")
+    @SerializedName("provider")
+    @Expose
+    public String provider;
 
     @ColumnInfo(name = "lat")
     @SerializedName("lat")
@@ -52,11 +67,38 @@ public class LocationEntity {
     @Expose
     public int miHeart;
 
-    @ColumnInfo(name = "saved", index = true)
+    @ColumnInfo(name = "accel_avg")
+    @SerializedName("accel_avg")
+    @Expose
+    public double accelerometerAverage;
+
+    @ColumnInfo(name = "accel_max")
+    @SerializedName("accel_max")
+    @Expose
+    public double accelerometerMaximum;
+
+    @ColumnInfo(name = "accel_count")
+    @SerializedName("accel_count")
+    @Expose
+    public int accelerometerCount;
+
+    @ColumnInfo(name = "activity")
+    @SerializedName("activity")
+    @Expose
+    public int activity;
+
+    @ColumnInfo(name = "transmitted", index = true)
+    public boolean transmitted;
+
     public boolean saved;
 
-    public LocationEntity setTime(long time) {
-        this.time = time;
+    public LocationEntity setWorkTime(long workTime) {
+        this.workTime = workTime;
+        return this;
+    }
+
+    public LocationEntity setWorkProvider(String workProvider) {
+        this.workProvider = workProvider;
         return this;
     }
 
@@ -64,21 +106,8 @@ public class LocationEntity {
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
         this.accuracy = location.getAccuracy();
-        return this;
-    }
-
-    public LocationEntity setLatitude(double latitude) {
-        this.latitude = latitude;
-        return this;
-    }
-
-    public LocationEntity setLongitude(double longitude) {
-        this.longitude = longitude;
-        return this;
-    }
-
-    public LocationEntity setAccuracy(float accuracy) {
-        this.accuracy = accuracy;
+        this.provider = location.getProvider();
+        this.time = location.getTime();
         return this;
     }
 
@@ -100,6 +129,31 @@ public class LocationEntity {
     public LocationEntity setMiHeart(int miHeart) {
         this.miHeart = miHeart;
         return this;
+    }
+
+    public LocationEntity setAccelerometer(int count, double avg, double max) {
+        this.accelerometerCount = count;
+        this.accelerometerAverage = avg;
+        this.accelerometerMaximum = max;
+        return this;
+    }
+
+    public LocationEntity setActivity(int activity) {
+        this.activity = activity;
+        return this;
+    }
+
+    public boolean isTransmitted() {
+        return transmitted;
+    }
+
+    public LocationEntity setTransmitted(boolean transmitted) {
+        this.transmitted = transmitted;
+        return this;
+    }
+
+    public boolean isSaved() {
+        return saved;
     }
 
     public LocationEntity setSaved(boolean saved) {

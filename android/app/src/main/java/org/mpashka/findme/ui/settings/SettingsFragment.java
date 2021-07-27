@@ -7,9 +7,12 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
 import org.mpashka.findme.MyPreferences;
-import org.mpashka.findme.MyWorkManager;
+import org.mpashka.findme.services.MyActivityService;
+import org.mpashka.findme.services.MyLocationFuseService;
+import org.mpashka.findme.services.MyLocationService;
+import org.mpashka.findme.services.MyWorkManager;
 import org.mpashka.findme.R;
-import org.mpashka.findme.db.MyTransmitService;
+import org.mpashka.findme.services.MyTransmitService;
 
 import javax.inject.Inject;
 
@@ -23,32 +26,34 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     @Inject
     MyTransmitService transmitService;
 
+    @Inject
+    MyWorkManager myWorkManager;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         PreferenceManager preferenceManager = getPreferenceManager();
         preferenceManager.setStorageDeviceProtected();
         preferenceManager.setSharedPreferencesName(MyPreferences.SETTINGS_NAME);
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
-    }
-
-    public void onResume() {
-        super.onResume();
-        Timber.d("Fragment1 onResume");
         getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
 
-    public void onPause() {
-        super.onPause();
-        Timber.d("Fragment1 onPause");
+    public void onDestroy() {
+        super.onDestroy();
+        Timber.d("Fragment1 onDestroy");
         getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.startsWith("poll_")) {
-            MyWorkManager.getInstance().rescheduleAccelerometerService(getContext());
-        } else if (key.startsWith("location_")) {
-            MyWorkManager.getInstance().restartLocationService(getContext());
+        if (key.startsWith("restart_check_id")) {
+            myWorkManager.start();
+        } else if (key.startsWith("location_gen_")) {
+            myWorkManager.reloadService(MyLocationService.class);
+        } else if (key.startsWith("location_fuse_")) {
+            myWorkManager.reloadService(MyLocationFuseService.class);
+        } else if (key.startsWith("activity_provider_")) {
+            myWorkManager.reloadService(MyActivityService.class);
         } else if (key.equals(getContext().getString(R.string.send_debug_http_id))) {
             transmitService.createApi();
         }
@@ -68,11 +73,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onDestroyView() {
         super.onDestroyView();
         Timber.d("Fragment1 onDestroyView");
-    }
-
-    public void onDestroy() {
-        super.onDestroy();
-        Timber.d("Fragment1 onDestroy");
     }
 
     public void onDetach() {

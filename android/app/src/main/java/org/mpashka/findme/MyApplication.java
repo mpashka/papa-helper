@@ -2,18 +2,17 @@ package org.mpashka.findme;
 
 import android.app.Application;
 import android.content.SharedPreferences;
-import android.widget.Toast;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.hilt.work.HiltWorkerFactory;
+import androidx.work.Configuration;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.polidea.rxandroidble2.RxBleClient;
 
+import org.jetbrains.annotations.NotNull;
 import org.mpashka.findme.db.MyDb;
-
-import java.util.Timer;
+import org.mpashka.findme.services.MyWorkManager;
 
 import javax.inject.Inject;
 
@@ -21,13 +20,21 @@ import dagger.hilt.android.HiltAndroidApp;
 import timber.log.Timber;
 
 @HiltAndroidApp
-public class MyApplication extends Application {
+public class MyApplication extends Application implements Configuration.Provider {
+
+    public static final String NAME = "org.mpashka.findme";
 
     @Inject
     MyDb db;
 
     @Inject
     MyPreferences preferences;
+
+    @Inject
+    MyWorkManager myWorkManager;
+
+    @Inject
+    HiltWorkerFactory workerFactory;
 
     @Override
     public void onCreate() {
@@ -36,7 +43,7 @@ public class MyApplication extends Application {
 //        Timber.tag("findme");
         Timber.d("Application start. Debug:%s", BuildConfig.DEBUG);
         generateFirebaseToken();
-        MyWorkManager.getInstance().startServices(this);
+        myWorkManager.startIfNeeded();
     }
 
     @Override
@@ -49,6 +56,15 @@ public class MyApplication extends Application {
         super.onTerminate();
     }
 
+    @NonNull
+    @NotNull
+    @Override
+    public Configuration getWorkManagerConfiguration() {
+        return new Configuration.Builder()
+                .setMinimumLoggingLevel(Log.VERBOSE)
+                .setWorkerFactory(workerFactory)
+                .build();
+    }
 
     private void generateFirebaseToken() {
         String fcmTokenProperty = getString(R.string.fcm_token);

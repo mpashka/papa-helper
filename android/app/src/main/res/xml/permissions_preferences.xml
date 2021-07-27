@@ -1,10 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <SwitchPreference
-        app:key="@string/location_provider_id"
-        app:title="@string/location_provider_title"
-        app:summaryOn="@string/location_permission_on"
-        app:summaryOff="@string/location_permission_off"
-        />
+
+    <PreferenceCategory app:title="@string/permission_category">
+        <SwitchPreference
+            app:key="@string/permission_location_fine_id"
+            app:title="@string/permission_location_fine_title"
+            app:summaryOn="@string/permission_on"
+            app:summaryOff="@string/permission_off"
+            />
+
+        <SwitchPreference
+            app:key="@string/permission_location_coarse_id"
+            app:title="@string/permission_location_coarse_title"
+            app:summaryOn="@string/permission_on"
+            app:summaryOff="@string/permission_off"
+            />
+
+        <SwitchPreference
+            app:key="@string/permission_location_background_id"
+            app:title="@string/permission_location_background_title"
+            app:summaryOn="@string/permission_on"
+            app:summaryOff="@string/permission_off"
+            />
+
+        <SwitchPreference
+            app:key="@string/permission_activity_recognition_id"
+            app:title="@string/permission_activity_recognition_title"
+            app:summaryOn="@string/permission_on"
+            app:summaryOff="@string/permission_off"
+            />
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/predicates_category">
+        <SwitchPreference
+            app:key="@string/predicate_background_restricted_id"
+            app:title="@string/predicate_background_restricted_title"
+            app:summaryOn="@string/predicate_on"
+            app:summaryOff="@string/predicate_off"
+            app:enabled="false"
+            />
+
+        <SwitchPreference
+            app:key="@string/predicate_lock_task_mode_id"
+            app:title="@string/predicate_lock_task_mode_title"
+            app:summaryOn="@string/predicate_on"
+            app:summaryOff="@string/predicate_off"
+            app:enabled="false"
+            />
+
+        <SwitchPreference
+            app:key="@string/predicate_low_memory_kill_report_supported_id"
+            app:title="@string/predicate_low_memory_kill_report_supported_title"
+            app:summaryOn="@string/predicate_on"
+            app:summaryOff="@string/predicate_off"
+            app:enabled="false"
+            />
+
+        <SwitchPreference
+            app:key="@string/predicate_low_ram_device_id"
+            app:title="@string/predicate_low_ram_device_title"
+            app:summaryOn="@string/predicate_on"
+            app:summaryOff="@string/predicate_off"
+            app:enabled="false"
+            />
+    </PreferenceCategory>
+
+
+
 </PreferenceScreen>

@@ -1,30 +1,31 @@
 package org.mpashka.findme;
 
 import android.content.Context;
-import android.database.SQLException;
+import android.hardware.SensorManager;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
 
-import androidx.annotation.NonNull;
 import androidx.room.Room;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.polidea.rxandroidble2.RxBleClient;
 import com.polidea.rxandroidble2.exceptions.BleException;
 
-import org.mpashka.findme.MyPreferences;
-import org.mpashka.findme.R;
-import org.mpashka.findme.Utils;
-import org.mpashka.findme.db.AccelerometerDao;
 import org.mpashka.findme.db.LocationDao;
 import org.mpashka.findme.db.MyDb;
-import org.mpashka.findme.db.MyTransmitService;
-import org.mpashka.findme.db.io.SaveApi;
-import org.mpashka.findme.miband.MiBand;
 import org.mpashka.findme.miband.MiBandManager;
-
-import java.io.File;
+import org.mpashka.findme.services.MyAccelerometerService;
+import org.mpashka.findme.services.MyActivityService;
+import org.mpashka.findme.services.MyLocationFuseService;
+import org.mpashka.findme.services.MyLocationService;
+import org.mpashka.findme.services.MyState;
+import org.mpashka.findme.services.MyTransmitService;
+import org.mpashka.findme.miband.MiBand;
+import org.mpashka.findme.services.MyWorkManager;
 
 import javax.inject.Singleton;
 
@@ -35,12 +36,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
 import io.reactivex.exceptions.UndeliverableException;
 import io.reactivex.plugins.RxJavaPlugins;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
 @InstallIn(SingletonComponent.class)
@@ -93,17 +88,18 @@ public class MyHiltModule {
 
     @Provides
     @Singleton
-    public AccelerometerDao accelerometerDao(MyDb db) {
-        return db.accelerometerDao();
+    public MyState state() {
+        return new MyState();
     }
 
     @Provides
     @Singleton
-    public MyTransmitService myTransmitService(LocationDao locationDao, AccelerometerDao accelerometerDao,
+    public MyTransmitService myTransmitService(LocationDao locationDao,
                                                MyPreferences preferences,
-                                               ConnectivityManager connectivityManager)
+                                               ConnectivityManager connectivityManager,
+                                               MyState state)
     {
-        return new MyTransmitService(locationDao, accelerometerDao, preferences, connectivityManager);
+        return new MyTransmitService(locationDao, preferences, connectivityManager, state);
     }
 
     @Provides
@@ -129,5 +125,48 @@ public class MyHiltModule {
         String peripheralAddress = "D7:67:6E:54:C7:5C";
         miBand.init(bleClient, peripheralAddress);
         return miBand;
+    }
+
+    @Provides
+    @Singleton
+    public MyAccelerometerService accelerometerService(@ApplicationContext Context context, MyPreferences preferences) {
+        return new MyAccelerometerService(context, preferences);
+    }
+
+    @Provides
+    @Singleton
+    public MyActivityService activityService(@ApplicationContext Context context) {
+        return new MyActivityService(context);
+    }
+
+    @Provides
+    @Singleton
+    public MyLocationFuseService locationFuseService(@ApplicationContext Context context, MyPreferences preferences) {
+        return new MyLocationFuseService(context, preferences);
+    }
+
+    @Provides
+    @Singleton
+    public MyLocationService locationService(@ApplicationContext Context context, MyPreferences preferences) {
+        return new MyLocationService(context, preferences);
+    }
+
+    @Provides
+    @Singleton
+    public MyTransmitService transmitService(LocationDao locationDao,
+                                             MyPreferences preferences,
+                                             ConnectivityManager connectivityManager,
+                                             MyState state) {
+        return new MyTransmitService(locationDao, preferences, connectivityManager, state);
+    }
+
+    @Provides
+    @Singleton
+    public MyWorkManager workManager(@ApplicationContext Context context, MyState state, MyPreferences preferences,
+                                     MyLocationService locationService, MyLocationFuseService locationFuseService,
+                                     MyAccelerometerService accelerometerService, MyActivityService activityService,
+                                     MiBandManager miBandManager, MyTransmitService transmitService, LocationDao locationDao) {
+        return new MyWorkManager(context, state, preferences, locationService, locationFuseService,
+                accelerometerService, activityService, miBandManager, transmitService, locationDao);
     }
 }
