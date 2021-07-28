@@ -10,12 +10,12 @@ import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.R;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
-import dagger.hilt.android.AndroidEntryPoint;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import timber.log.Timber;
 
-@AndroidEntryPoint
+@Singleton
 public class MyLocationService implements MyListenableServiceInterface {
 
     private static final String[] PERMISSIONS = {
@@ -23,19 +23,17 @@ public class MyLocationService implements MyListenableServiceInterface {
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
-    @Inject
-    MyPreferences preferences;
-
+    private MyPreferences preferences;
     private LocationManager locationManager;
-
     private PendingIntent locationPendingIntent;
 
+    @Inject
     public MyLocationService(@ApplicationContext Context context, MyPreferences preferences) {
         this.locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         this.preferences = preferences;
 
         Intent intent = new Intent(context, MyLocationListener.class)
-                .setAction(MyLocationListener.FUSE_LOCATION_UPDATE);
+                .setAction(MyLocationListener.NORMAL_LOCATION_UPDATE);
         locationPendingIntent = PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 

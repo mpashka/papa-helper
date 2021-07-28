@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import org.mpashka.findme.R;
 import org.mpashka.findme.services.MyState;
 import org.mpashka.findme.services.MyTransmitService;
+import org.mpashka.findme.services.MyWorkManager;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -21,7 +22,7 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -29,6 +30,7 @@ import timber.log.Timber;
 public class HomeFragment extends Fragment {
 
     private static final DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 
     @Inject
     MyState state;
@@ -36,38 +38,52 @@ public class HomeFragment extends Fragment {
     @Inject
     MyTransmitService transmitService;
 
-    private Disposable createdDisposable;
-    private Disposable transmittedDisposable;
+    @Inject
+    MyWorkManager workManager;
+
+    private CompositeDisposable disposable;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_home, container, false);
-        ((TextView) root.findViewById(R.id.text_home_started_value)).setText(format.format(new Date(state.getCreated())));
+        ((TextView) root.findViewById(R.id.text_home_started_value)).setText(format.format(new Date(state.getStarted())));
 
-        final TextView locationsSavedView = root.findViewById(R.id.text_home_locations_saved);
-        final TextView locationsUnsavedView = root.findViewById(R.id.text_home_locations_unsaved);
+        final TextView locationsSavedView = root.findViewById(R.id.text_home_locations_count);
+        final TextView locationsUnsavedView = root.findViewById(R.id.text_home_pending_count);
+        final TextView createdTimeView = root.findViewById(R.id.text_home_created_date);
+        final TextView transmittedTimeView = root.findViewById(R.id.text_home_transmitted_date);
 
-        createdDisposable = state.getCreatedSubject()
+        disposable = new CompositeDisposable();
+        disposable.add(state.getCreatedSubject()
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(c -> locationsSavedView.setText(String.valueOf(c)))
-                .subscribe();
+                .subscribe());
 
-        transmittedDisposable = state.getPendingSubject()
+        disposable.add(state.getPendingSubject()
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(c -> locationsUnsavedView.setText(String.valueOf(c)))
-                .subscribe();
+                .subscribe());
+
+        disposable.add(state.getCreateTimeSubject()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(c -> createdTimeView.setText(timeFormat.format(new Date(c))))
+                .subscribe());
+
+        disposable.add(state.getTransmitTimeSubject()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(c -> transmittedTimeView.setText(timeFormat.format(new Date(c))))
+                .subscribe());
 
         root.findViewById(R.id.home_locate).setOnClickListener(v -> {
             Timber.d("Home.locate");
-            // todo
+            workManager.fetchCurrentLocation();
         });
         root.findViewById(R.id.home_send).setOnClickListener(v -> {
             Timber.d("Home.send");
-            transmitService.transmitLocations()
+            transmitService.transmitPending()
                     .subscribeOn(Schedulers.io())
                     .subscribe(saveEntity -> Timber.d("Entity saved"),
-                            e -> Timber.w(e, "Entity save error"),
-                            () -> Timber.d("Complete"));
+                            e -> Timber.w(e, "Entity save error"));
         });
 
         return root;
@@ -75,8 +91,7 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        disposable.dispose();
         super.onDestroy();
-        createdDisposable.dispose();
-        transmittedDisposable.dispose();
     }
 }

@@ -1,17 +1,11 @@
 package org.mpashka.findme;
 
 import android.content.Context;
-import android.hardware.SensorManager;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.os.Build;
 
 import androidx.room.Room;
 
-import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.ActivityRecognitionClient;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.polidea.rxandroidble2.RxBleClient;
 import com.polidea.rxandroidble2.exceptions.BleException;
 
@@ -25,7 +19,6 @@ import org.mpashka.findme.services.MyLocationService;
 import org.mpashka.findme.services.MyState;
 import org.mpashka.findme.services.MyTransmitService;
 import org.mpashka.findme.miband.MiBand;
-import org.mpashka.findme.services.MyWorkManager;
 
 import javax.inject.Singleton;
 
@@ -41,19 +34,6 @@ import timber.log.Timber;
 @InstallIn(SingletonComponent.class)
 @Module
 public class MyHiltModule {
-
-    @Provides
-    @Singleton
-    public MyPreferences preferences(@ApplicationContext Context applicationContext) {
-        Timber.d("preferences()");
-        return new MyPreferences(applicationContext);
-    }
-
-    @Provides
-    @Singleton
-    public ConnectivityManager connectivityManager(@ApplicationContext Context applicationContext) {
-        return (ConnectivityManager)applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-    }
 
     @Provides
     @Singleton
@@ -94,17 +74,15 @@ public class MyHiltModule {
 
     @Provides
     @Singleton
-    public MyTransmitService myTransmitService(LocationDao locationDao,
-                                               MyPreferences preferences,
-                                               ConnectivityManager connectivityManager,
-                                               MyState state)
-    {
-        return new MyTransmitService(locationDao, preferences, connectivityManager, state);
-    }
+    public MiBandManager miBandManager(@ApplicationContext Context applicationContext) {
+        RxBleClient rxBleClient = RxBleClient.create(applicationContext);
+        RxBleClient.State state = rxBleClient.getState();
+        Timber.i("BLE state: %s", state);
+        if (state == RxBleClient.State.BLUETOOTH_NOT_AVAILABLE) {
+            Timber.i("Bluetooth not present. MiBandManager won't be accessible");
+            return new MiBandManager(null);
+        }
 
-    @Provides
-    @Singleton
-    public RxBleClient rxBleClient(@ApplicationContext Context applicationContext) {
         RxJavaPlugins.setErrorHandler(throwable -> {
             if (throwable instanceof UndeliverableException && throwable.getCause() instanceof BleException) {
                 Timber.d(throwable, "Suppressed UndeliverableException");
@@ -115,58 +93,11 @@ public class MyHiltModule {
 //            throw new RuntimeException("Unexpected Throwable in RxJavaPlugins error handler", throwable);
         });
 
-        return RxBleClient.create(applicationContext);
-    }
 
-    @Provides
-    @Singleton
-    public MiBand miBandManager(RxBleClient bleClient) {
         MiBand miBand = new MiBand();
         String peripheralAddress = "D7:67:6E:54:C7:5C";
-        miBand.init(bleClient, peripheralAddress);
-        return miBand;
-    }
+        miBand.init(rxBleClient, peripheralAddress);
 
-    @Provides
-    @Singleton
-    public MyAccelerometerService accelerometerService(@ApplicationContext Context context, MyPreferences preferences) {
-        return new MyAccelerometerService(context, preferences);
-    }
-
-    @Provides
-    @Singleton
-    public MyActivityService activityService(@ApplicationContext Context context) {
-        return new MyActivityService(context);
-    }
-
-    @Provides
-    @Singleton
-    public MyLocationFuseService locationFuseService(@ApplicationContext Context context, MyPreferences preferences) {
-        return new MyLocationFuseService(context, preferences);
-    }
-
-    @Provides
-    @Singleton
-    public MyLocationService locationService(@ApplicationContext Context context, MyPreferences preferences) {
-        return new MyLocationService(context, preferences);
-    }
-
-    @Provides
-    @Singleton
-    public MyTransmitService transmitService(LocationDao locationDao,
-                                             MyPreferences preferences,
-                                             ConnectivityManager connectivityManager,
-                                             MyState state) {
-        return new MyTransmitService(locationDao, preferences, connectivityManager, state);
-    }
-
-    @Provides
-    @Singleton
-    public MyWorkManager workManager(@ApplicationContext Context context, MyState state, MyPreferences preferences,
-                                     MyLocationService locationService, MyLocationFuseService locationFuseService,
-                                     MyAccelerometerService accelerometerService, MyActivityService activityService,
-                                     MiBandManager miBandManager, MyTransmitService transmitService, LocationDao locationDao) {
-        return new MyWorkManager(context, state, preferences, locationService, locationFuseService,
-                accelerometerService, activityService, miBandManager, transmitService, locationDao);
+        return new MiBandManager(miBand);
     }
 }

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -18,12 +19,12 @@ import org.mpashka.findme.MyPreferences;
 import org.mpashka.findme.R;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
-import dagger.hilt.android.AndroidEntryPoint;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import timber.log.Timber;
 
-@AndroidEntryPoint
+@Singleton
 public class MyLocationFuseService implements MyListenableServiceInterface {
 
     private static final String[] PERMISSIONS = {
@@ -31,23 +32,21 @@ public class MyLocationFuseService implements MyListenableServiceInterface {
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
-    @ApplicationContext
-    Context context;
-
-    @Inject
-    MyPreferences preferences;
+    private Context context;
+    private MyPreferences preferences;
 
     private FusedLocationProviderClient fusedLocationClient;
     private LocationRequest locationRequest = LocationRequest.create();
     private PendingIntent locationPendingIntent;
 
+    @Inject
     public MyLocationFuseService(@ApplicationContext Context context, MyPreferences preferences) {
         this.context = context;
-        this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
         this.preferences = preferences;
+        this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
 
         Intent intent = new Intent(context, MyLocationListener.class)
-                .setAction(MyLocationListener.NORMAL_LOCATION_UPDATE);
+                .setAction(MyLocationListener.FUSED_LOCATION_UPDATE);
         locationPendingIntent = PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
@@ -78,11 +77,12 @@ public class MyLocationFuseService implements MyListenableServiceInterface {
     public void fetchCurrentLocation() {
         CancellationToken cancellationToken = new CancellationTokenSource().getToken();
         fusedLocationClient.getCurrentLocation(getPriority(), cancellationToken)
-                .addOnCompleteListener(l -> {
-                    Timber.i("Current location received %s", l);
-                    Intent intent = new Intent(context, MyLocationListener.class)
-                            .setAction(MyLocationListener.FUSE_CURRENT_LOCATION_UPDATE)
-                            .putExtra(MyLocationListener.PARCEL_LOCATION, l.getResult());
+                .addOnCompleteListener(t -> {
+                    Location location = t.getResult();
+                    Timber.i("Current location received %s", t);
+                    Intent intent = new Intent(/*context, MyLocationListener.class*/)
+                            .setAction(MyLocationListener.FUSED_CURRENT_LOCATION_UPDATE)
+                            .putExtra(MyLocationListener.PARCEL_LOCATION, location);
                     LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                 });
     }

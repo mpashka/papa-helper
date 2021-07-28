@@ -10,18 +10,23 @@ import timber.log.Timber;
 
 public class MiBandManager {
 
+    public static final MiBandManager.MiBandInfo MIBAND_EMPTY = new MiBandManager.MiBandInfo();
+
     private static final int HEART_RATE_COUNT = 3;
     public static final int HEART_RATE_TIMEOUT = 60;
 
     private MiBand miBand;
     private int prevSteps;
 
-    @Inject
     public MiBandManager(MiBand miBand) {
         this.miBand = miBand;
     }
 
     public Single<MiBandInfo> readMiBandInfo() {
+        if (miBand == null) {
+            return Single.just(MIBAND_EMPTY);
+        }
+
         MiBandInfo miBandInfo = new MiBandInfo();
 
         return miBand.connect()

@@ -28,8 +28,8 @@ import timber.log.Timber;
 @AndroidEntryPoint
 public class MyLocationListener extends BroadcastReceiver {
     public static final String NORMAL_LOCATION_UPDATE = "org.mpashka.findme.action.SERVICE_LOCATION_UPDATE";
-    public static final String FUSE_LOCATION_UPDATE = "org.mpashka.findme.action.FUSED_LOCATION_UPDATE";
-    public static final String FUSE_CURRENT_LOCATION_UPDATE = "org.mpashka.findme.action.FUSED_CURRENT_LOCATION_UPDATE";
+    public static final String FUSED_LOCATION_UPDATE = "org.mpashka.findme.action.FUSED_LOCATION_UPDATE";
+    public static final String FUSED_CURRENT_LOCATION_UPDATE = "org.mpashka.findme.action.FUSED_CURRENT_LOCATION_UPDATE";
     public static final String ACTIVITY_UPDATE = "org.mpashka.findme.action.ACTIVITY_UPDATE";
 
     public static final String PARCEL_LOCATION = "org.mpashka.findme.parcel.LOCATION";
@@ -37,7 +37,6 @@ public class MyLocationListener extends BroadcastReceiver {
     private static final String PROVIDER_NORMAL = "loc";
     private static final String PROVIDER_FUSE = "fuse";
     private static final String PROVIDER_FUSE_CURRENT = "fuse_curr";
-    private static final MiBandManager.MiBandInfo MIBAND_EMPTY = new MiBandManager.MiBandInfo();
 
 
     @Inject
@@ -75,10 +74,10 @@ public class MyLocationListener extends BroadcastReceiver {
         }
 
         switch (intent.getAction()) {
-            case FUSE_LOCATION_UPDATE:
+            case FUSED_LOCATION_UPDATE:
                 onFusedLocation(context, intent);
                 break;
-            case FUSE_CURRENT_LOCATION_UPDATE:
+            case FUSED_CURRENT_LOCATION_UPDATE:
                 Location location = intent.getParcelableExtra(PARCEL_LOCATION);
                 Timber.i("FUSED current Location %s [%s] -> %s/%s/%s", location, location.getProvider(), location.getAccuracy(), location.getLatitude(), location.getLongitude());
                 insertLocation(context, PROVIDER_FUSE_CURRENT, location);
@@ -140,7 +139,7 @@ public class MyLocationListener extends BroadcastReceiver {
                 .flatMap(l ->
                         miBandManager
                                 .readMiBandInfo()
-                                .onErrorReturnItem(MIBAND_EMPTY)
+                                .onErrorReturnItem(MiBandManager.MIBAND_EMPTY)
                                 .observeOn(Schedulers.io())
                                 .map(miBandInfo -> locationEntity
                                         .setMiBattery(miBandInfo.getBattery())

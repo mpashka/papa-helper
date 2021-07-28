@@ -6,7 +6,12 @@ import android.content.res.Resources;
 import android.os.Build;
 import android.util.TypedValue;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
+import dagger.hilt.android.qualifiers.ApplicationContext;
+
+@Singleton
 public class MyPreferences {
 
     public static final String SETTINGS_NAME = MyApplication.NAME + "_preferences";
@@ -14,7 +19,8 @@ public class MyPreferences {
     private Context deviceContext;
     private SharedPreferences preferences;
 
-    public MyPreferences(Context applicationContext) {
+    @Inject
+    public MyPreferences(@ApplicationContext Context applicationContext) {
         deviceContext = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 ? applicationContext.createDeviceProtectedStorageContext()
                 : applicationContext;

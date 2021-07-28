@@ -114,7 +114,7 @@
             app:title="@string/restart_location_fuse_max_time_title"
             android:inputType="numberDecimal"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="@dimen/restart_location_fuse_max_time_default"/>
+            app:defaultValue="@integer/restart_location_fuse_max_time_default"/>
 
         <ListPreference
             app:key="@string/location_fuse_priority_id"

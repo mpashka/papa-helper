@@ -21,10 +21,10 @@ import retrofit2.http.Query;
  */
 public interface SaveApi {
     @POST("/findme/save")
-    Single<Void> save(@Body SaveEntity save);
+    Completable save(@Body SaveEntity save);
 
     @POST("/findme/location/add")
-    Single<Void> locationAdd(LocationEntity location);
+    Completable locationAdd(LocationEntity location);
 
     @GET("/findme/location/get")
     Single<List<LocationEntity>> locationGet(@Query("start") long start, @Query("stop") long stop);

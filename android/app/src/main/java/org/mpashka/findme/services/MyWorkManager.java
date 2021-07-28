@@ -20,6 +20,7 @@ import org.mpashka.findme.miband.MiBandManager;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedInject;
@@ -27,7 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import timber.log.Timber;
 
-@AndroidEntryPoint
+@Singleton
 public class MyWorkManager {
 
     @ApplicationContext
@@ -52,9 +53,6 @@ public class MyWorkManager {
     MyActivityService activityService;
 
     @Inject
-    MiBandManager miBandManager;
-
-    @Inject
     MyTransmitService transmitService;
 
     @Inject
@@ -65,10 +63,11 @@ public class MyWorkManager {
     private ServiceInfo[] services;
     private ServiceInfo fuseServiceInfo;
 
-    public MyWorkManager(Context context, MyState state, MyPreferences preferences,
+    @Inject
+    public MyWorkManager(@ApplicationContext Context context, MyState state, MyPreferences preferences,
                          MyLocationService locationService, MyLocationFuseService locationFuseService,
                          MyAccelerometerService accelerometerService, MyActivityService activityService,
-                         MiBandManager miBandManager, MyTransmitService transmitService, LocationDao locationDao) {
+                         MyTransmitService transmitService, LocationDao locationDao) {
         this.context = context;
         this.state = state;
         this.preferences = preferences;
@@ -76,7 +75,6 @@ public class MyWorkManager {
         this.locationFuseService = locationFuseService;
         this.accelerometerService = accelerometerService;
         this.activityService = activityService;
-        this.miBandManager = miBandManager;
         this.transmitService = transmitService;
         this.locationDao = locationDao;
 
@@ -109,7 +107,7 @@ public class MyWorkManager {
         public Result doWork() {
             Timber.d("RestartWorker::doWork()");
 
-            int maxTimeMinutes = preferences.getInt(R.string.restart_location_fuse_max_time_id, R.dimen.restart_location_fuse_max_time_default);
+            int maxTimeMinutes = preferences.getInt(R.string.restart_location_fuse_max_time_id, R.integer.restart_location_fuse_max_time_default);
             if (state.getLastCreateTime() < System.currentTimeMillis() - maxTimeMinutes * 60 * 1000) {
                 workManager.fetchCurrentLocation();
             }

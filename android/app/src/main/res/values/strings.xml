@@ -32,8 +32,9 @@
 
     <string name="permissions_name">Permissions</string>
     <string name="home_started">Started</string>
-    <string name="home_locate">Locate</string>
     <string name="home_locations">Locations</string>
+    <string name="home_pending">Pending</string>
+    <string name="home_locate">Locate</string>
     <string name="home_send">Send</string>
 
     <string name="snack_ok">OK</string>

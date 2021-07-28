@@ -92,7 +92,7 @@
     <!-- This is for work manager -->
     <string name="restart_location_fuse_max_time_id">restart_location_fuse_max_time_id</string>
     <string name="restart_location_fuse_max_time_title">Work manager - Max time between locations, minutes</string>
-    <item name="restart_location_fuse_max_time_default" type="dimen" format="float">20</item>
+    <integer name="restart_location_fuse_max_time_default">20</integer>
 
     <string name="location_fuse_priority_id">location_fuse_priority_id</string>
     <string name="location_fuse_priority_title">Location priority</string>

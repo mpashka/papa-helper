@@ -44,20 +44,22 @@ public class PermissionsFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_permissions, container, false);
         FragmentTransaction transaction = getParentFragmentManager().beginTransaction();
-        Fragment settings = new PermissionsSettingsFragment(root);
+        Fragment settings = new PermissionsSettingsFragment(root, myWorkManager);
         transaction.add(R.id.permissions_fragment_container_view, settings);
         transaction.commit();
         return root;
     }
 
-    public class PermissionsSettingsFragment extends PreferenceFragmentCompat {
+    public static class PermissionsSettingsFragment extends PreferenceFragmentCompat {
         private ActivityResultLauncher<String> requestPermissionLauncher;
         private List<UiPermissionInfo> uiPermissions = new ArrayList<>();
         private List<UiPredicateInfo> uiPredicates = new ArrayList<>();
         private View rootView;
+        private MyWorkManager myWorkManager;
 
-        public PermissionsSettingsFragment(View rootView) {
+        public PermissionsSettingsFragment(View rootView, MyWorkManager myWorkManager) {
             this.rootView = rootView;
+            this.myWorkManager = myWorkManager;
         }
 
         @SuppressLint("NewApi")

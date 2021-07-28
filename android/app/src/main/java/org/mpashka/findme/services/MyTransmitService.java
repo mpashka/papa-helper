@@ -1,5 +1,6 @@
 package org.mpashka.findme.services;
 
+import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
@@ -17,8 +18,10 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.reactivex.SingleTransformer;
@@ -30,41 +33,32 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import timber.log.Timber;
 
-@AndroidEntryPoint
+@Singleton
 public class MyTransmitService {
 
-    @Inject
     private LocationDao locationDao;
-
-    @Inject
     private MyPreferences preferences;
-
-    @Inject
     private ConnectivityManager connectivityManager;
-
-    @Inject
     private MyState state;
-
     private SaveApi saveApi;
 
-    public MyTransmitService(LocationDao locationDao,
-                             MyPreferences preferences,
-                             ConnectivityManager connectivityManager,
-                             MyState state)
-    {
+    @Inject
+    public MyTransmitService(@ApplicationContext Context context, LocationDao locationDao, MyPreferences preferences, MyState state) {
         this.locationDao = locationDao;
         this.preferences = preferences;
-        this.connectivityManager = connectivityManager;
         this.state = state;
+        connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         createApi();
 
         locationDao
                 .getTotalCount()
-                .observeOn(Schedulers.io())
+//                .observeOn(Schedulers.io())
                 .flatMap(c -> locationDao
                         .getPendingCount()
                         .map(u -> new long[]{c, u})
+//                        .subscribeOn(Schedulers.io())
                 )
+                .subscribeOn(Schedulers.io())
                 .subscribe(v -> this.state.init(v[0], v[1]));
     }
 
@@ -74,7 +68,7 @@ public class MyTransmitService {
                 .create(SaveApi.class);
     }
 
-    public Single<Void> checkAndTransmitLocations(LocationEntity lastLocation) {
+    public Single<SaveEntity> checkAndTransmitLocations(LocationEntity lastLocation) {
         Timber.d("transmitLocations()");
 
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
@@ -97,9 +91,7 @@ public class MyTransmitService {
             Timber.d("Sending %s pending location + last", state.getPending());
             return Single.just(new SaveEntity())
                     .compose(loadPending(lastLocation))
-                    .flatMap(saveEntity -> transmit(lastLocation, saveEntity))
-//                    .onErrorResumeNext()
-                    .map(u -> null);
+                    .flatMap(saveEntity -> transmit(lastLocation, saveEntity));
         }
     }
 
@@ -115,27 +107,36 @@ public class MyTransmitService {
                                 }
                                 List<LocationEntity> allLocations = new ArrayList<>(locations.size() + 1);
                                 allLocations.addAll(locations);
-                                allLocations.add(lastLocation);
+                                if (lastLocation != null) {
+                                    allLocations.add(lastLocation);
+                                }
                                 return saveEntity.setLocations(allLocations);
                             });
                 });
     }
 
     @NotNull
-    private Single<Void> saveToLocal(LocationEntity lastLocation) {
+    private Single<SaveEntity> saveToLocal(LocationEntity lastLocation) {
         return locationDao.insert(lastLocation)
                 .map(l -> {
                     Timber.i("Saved successfully");
                     lastLocation.setSaved(true);
                     state.addPending();
-                    return null;
+                    return new SaveEntity().setLocations(Collections.singletonList(lastLocation));
                 });
     }
 
-    private Single<Void> transmit(LocationEntity lastLocation, SaveEntity saveEntity) {
+    public Single<SaveEntity> transmitPending() {
+        return Single.just(new SaveEntity())
+                .compose(loadPending(null))
+                .flatMap(s -> transmit(null, s));
+    }
+
+    private Single<SaveEntity> transmit(LocationEntity lastLocation, SaveEntity saveEntity) {
         int retry = preferences.getInt(R.string.send_retry_id, R.integer.send_retry_default);
         return saveApi.save(saveEntity)
                 .retry(retry)
+                .toSingleDefault(saveEntity)
                 .flatMap(v -> {
                     Timber.d("Transmitted successfully. Updating db.");
                     state.onTransmit(saveEntity.getLocations().size());
@@ -148,12 +149,12 @@ public class MyTransmitService {
                         location.setTransmitted(true);
                     }
                     return pendingTransmittedIds.size() > 0
-                            ? locationDao.setTransmitted(pendingTransmittedIds).map(u -> null)
-                            : Single.just(v);
+                            ? locationDao.setTransmitted(pendingTransmittedIds).map(u -> saveEntity)
+                            : Single.just(saveEntity);
                 })
                 .onErrorResumeNext(e -> {
                     Timber.e(e, "Transmit error. Saving location to the local database");
-                    return saveToLocal(lastLocation);
+                    return lastLocation != null ? saveToLocal(lastLocation) : Single.just(new SaveEntity());
                 });
     }
 

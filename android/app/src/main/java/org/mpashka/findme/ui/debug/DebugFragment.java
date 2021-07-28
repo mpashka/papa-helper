@@ -24,6 +24,9 @@ import timber.log.Timber;
 public class DebugFragment extends Fragment {
 
     @Inject
+    MyWorkManager workManager;
+
+    @Inject
     MiBandManager miBandManager;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -36,7 +39,7 @@ public class DebugFragment extends Fragment {
 
         root.findViewById(R.id.btnDebug_fcmToken).setOnClickListener(v -> getFirebaseToken());
 
-        root.findViewById(R.id.btnDebug_start).setOnClickListener(v -> MyWorkManager.getInstance().startWorkerManager(getContext()));
+        root.findViewById(R.id.btnDebug_start).setOnClickListener(v -> workManager.startIfNeeded());
         return root;
     }
 

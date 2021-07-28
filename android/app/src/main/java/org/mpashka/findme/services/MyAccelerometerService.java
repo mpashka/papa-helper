@@ -14,24 +14,24 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleTransformer;
 import timber.log.Timber;
 
-@AndroidEntryPoint
+@Singleton
 public class MyAccelerometerService {
 
-    @Inject
-    MyPreferences preferences;
-
+    private MyPreferences preferences;
     private SensorManager sensorManager;
-
     private AccelerationListener accelerationListener = new AccelerationListener();
 
-    public MyAccelerometerService(Context context, MyPreferences preferences) {
+    @Inject
+    public MyAccelerometerService(@ApplicationContext Context context, MyPreferences preferences) {
         this.preferences = preferences;
         this.sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
     }

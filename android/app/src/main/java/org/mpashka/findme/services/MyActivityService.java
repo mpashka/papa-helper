@@ -15,11 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import dagger.hilt.android.AndroidEntryPoint;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 import timber.log.Timber;
 
-@AndroidEntryPoint
+@Singleton
 public class MyActivityService implements MyListenableServiceInterface {
 
     private static final String[] PERMISSIONS = {"com.google.android.gms.permission.ACTIVITY_RECOGNITION"};
@@ -28,7 +30,8 @@ public class MyActivityService implements MyListenableServiceInterface {
 
     private PendingIntent activityPendingIntent;
 
-    public MyActivityService(Context applicationContext) {
+    @Inject
+    public MyActivityService(@ApplicationContext Context applicationContext) {
         this.activityRecognitionClient = ActivityRecognition.getClient(applicationContext);
 
         Intent intent = new Intent(applicationContext, MyLocationListener.class)
