@@ -105,7 +105,7 @@ public class MyWorkManager {
         @NonNull
         @Override
         public Result doWork() {
-            Timber.d("RestartWorker::doWork()");
+            Timber.i("RestartWorker::doWork()");
 
             int maxTimeMinutes = preferences.getInt(R.string.restart_location_fuse_max_time_id, R.integer.restart_location_fuse_max_time_default);
             if (state.getLastCreateTime() < System.currentTimeMillis() - maxTimeMinutes * 60 * 1000) {
@@ -129,7 +129,7 @@ public class MyWorkManager {
      * Starts work manager (or update check interval)
      */
     public void start() {
-        Timber.d("startWorkerManager");
+        Timber.i("startWorkerManager");
         try {
             WorkManager workManager = WorkManager.getInstance(context);
             int restartCheckMinutes = preferences.getInt(R.string.restart_check_id, R.integer.restart_check_default);
@@ -168,7 +168,7 @@ public class MyWorkManager {
     }
 
     public void startServices() {
-        Timber.d("startServices");
+        Timber.i("startServices");
         for (ServiceInfo service : services) {
             reloadService(service);
         }
@@ -192,7 +192,7 @@ public class MyWorkManager {
     }
 
     public void stop() {
-        Timber.d("stopServices");
+        Timber.i("stopServices");
         for (ServiceInfo service : services) {
             service.stop();
         }

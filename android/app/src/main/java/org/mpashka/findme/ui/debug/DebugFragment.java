@@ -35,7 +35,7 @@ public class DebugFragment extends Fragment {
         root.findViewById(R.id.btnDebug_heart).setOnClickListener(v -> miBandManager
                 .readMiBandInfo()
 //                    .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(i -> Timber.d("Mi band info %s", i)));
+                .subscribe(i -> Timber.i("Mi band info %s", i)));
 
         root.findViewById(R.id.btnDebug_fcmToken).setOnClickListener(v -> getFirebaseToken());
 
@@ -55,7 +55,7 @@ public class DebugFragment extends Fragment {
                     String token = task.getResult();
 
                     // Log and toast
-                    Timber.d("FCM registration token: %s", token);
+                    Timber.i("FCM registration token: %s", token);
                     Toast.makeText(getContext(), token, Toast.LENGTH_SHORT).show();
                 });
     }

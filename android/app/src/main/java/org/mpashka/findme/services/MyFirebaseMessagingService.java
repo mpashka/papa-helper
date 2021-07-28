@@ -59,11 +59,11 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
-        Timber.d("From: %s", remoteMessage.getFrom());
+        Timber.i("From: %s", remoteMessage.getFrom());
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
-            Timber.d("Message data payload: %s", remoteMessage.getData());
+            Timber.i("Message data payload: %s", remoteMessage.getData());
 
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use WorkManager.
@@ -77,7 +77,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            Timber.d("Message Notification Body: %s", remoteMessage.getNotification().getBody());
+            Timber.i("Message Notification Body: %s", remoteMessage.getNotification().getBody());
             sendNotification(remoteMessage.getNotification().getBody());
         }
 
@@ -99,7 +99,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
      */
     @Override
     public void onNewToken(String token) {
-        Timber.d("Refreshed token: %s", token);
+        Timber.i("Refreshed token: %s", token);
 
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the

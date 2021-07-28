@@ -50,7 +50,7 @@ public class MyAccelerometerService {
     }
 
     private void startListen() {
-        Timber.d("startListen()");
+        Timber.i("startListen()");
         accelerationListener.reset();
         int pollSampling = preferences.getInt(R.string.accel_poll_sampling_id, R.integer.accel_poll_sampling_default);
 
@@ -59,7 +59,7 @@ public class MyAccelerometerService {
         // SensorManager.SENSOR_DELAY_NORMAL
 //            sensors.forEach(s -> sensorManager.registerListener(accelerationListener, s, pollSampling));
         for (Sensor sensor : sensors) {
-//                Timber.d("Sensor: %s", sensor);
+            Timber.i("Sensor: %s", sensor);
             try {
                 sensorManager.registerListener(accelerationListener, sensor, pollSampling);
             } catch (Exception e) {
@@ -69,7 +69,7 @@ public class MyAccelerometerService {
     }
 
     private void stopListenAndReport(LocationEntity l) {
-        Timber.d("stopListen and report()");
+        Timber.i("stopListen and report()");
         sensorManager.unregisterListener(accelerationListener);
         accelerationListener.report(l);
     }
@@ -87,12 +87,12 @@ public class MyAccelerometerService {
 
         @Override
         public void onFlushCompleted(Sensor sensor) {
-            Timber.d("onFlushCompleted");
+            Timber.i("onFlushCompleted");
         }
 
         @Override
         public void onSensorChanged(SensorEvent event) {
-//            Timber.d("onSensorChanged. %s, %s, %s", event.values[0], event.values[1], event.values[2]);
+//            Timber.i("onSensorChanged. %s, %s, %s", event.values[0], event.values[1], event.values[2]);
             double value = Math.sqrt(event.values[0]*event.values[0] + event.values[1]*event.values[1] + event.values[2]*event.values[2]);
             count++;
             sum +=  value;
@@ -101,10 +101,11 @@ public class MyAccelerometerService {
 
         @Override
         public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            Timber.d("onAccuracyChanged %s", accuracy);
+            Timber.i("onAccuracyChanged %s", accuracy);
         }
 
         public void report(LocationEntity locationEntity) {
+            Timber.i("Total sensors: %s, %s, %s", count, sum, max);
             locationEntity.setAccelerometer(count, count > 0 ? sum / count : 0, max);
         }
     }

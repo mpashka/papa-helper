@@ -126,7 +126,7 @@ public class MyLocationListener extends BroadcastReceiver {
                 .insert(new EntityLocation(provider, location)));
 */
 
-        Timber.d("onLocationChanged %s", location);
+        Timber.i("onLocationChanged %s", location);
         LocationEntity locationEntity = new LocationEntity()
                 .setWorkProvider(provider)
                 .setLocation(location)
@@ -149,7 +149,7 @@ public class MyLocationListener extends BroadcastReceiver {
                 )
                 .compose(accelerometerService.fetchSensors())
                 .flatMap(l -> transmitService.checkAndTransmitLocations(l))
-                .subscribe(saveEntity -> Timber.d("Location saved successfully"),
+                .subscribe(saveEntity -> Timber.i("Location saved successfully"),
                         e -> Timber.e(e, "Error saving location"));
     }
 

@@ -86,13 +86,13 @@ public class PermissionsFragment extends Fragment {
             super.onStart();
             requestPermissionLauncher =
                     registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                        Timber.d("onRequestPermissionsResult");
+                        Timber.i("onRequestPermissionsResult");
                         Snackbar.make(rootView,
                                 isGranted
                                         ? "Permission successfully granted"
                                         : "Permission not granted"
                                 , Snackbar.LENGTH_LONG)
-                                .setAction(R.string.snack_ok, v -> Timber.d("Snack ok"))
+                                .setAction(R.string.snack_ok, v -> Timber.i("Snack ok"))
                                 .show();
                         update();
                         if (isGranted) {
@@ -152,13 +152,13 @@ public class PermissionsFragment extends Fragment {
                 this.ui = ui;
                 this.permission = permission;
                 ui.setOnPreferenceClickListener(preference -> {
-                    Timber.d("onPreferenceClick. Checked %s. Granted %s. Should show %s"
+                    Timber.i("onPreferenceClick. Checked %s. Granted %s. Should show %s"
                             , ui.isChecked(), isGranted(), isShowRationale());
                     if (ui.isChecked() && !isGranted()) {
                         if (isShowRationale()) {
                             Snackbar.make(rootView, String.format("Permission '%s' required", permission), Snackbar.LENGTH_LONG)
                                     .setAction(R.string.snack_ok, v -> {
-                                        Timber.d("Permission rationale shown");
+                                        Timber.i("Permission rationale shown");
                                         requestPermissionLauncher.launch(permission);
                                     })
                                     .show();

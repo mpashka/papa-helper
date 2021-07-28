@@ -26,7 +26,7 @@ public class MyPreferences {
                 : applicationContext;
 
         preferences = deviceContext.getSharedPreferences(SETTINGS_NAME, Context.MODE_PRIVATE);
-//        Timber.d("Database path %s", deviceContext.getDatabasePath("aaa"));
+//        Timber.i("Database path %s", deviceContext.getDatabasePath("aaa"));
     }
 
     public SharedPreferences getPreferences() {

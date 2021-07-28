@@ -41,7 +41,7 @@ public class MyApplication extends Application implements Configuration.Provider
         super.onCreate();
         Timber.plant(new Timber.DebugTree());
 //        Timber.tag("findme");
-        Timber.d("Application start. Debug:%s", BuildConfig.DEBUG);
+        Timber.i("Application start. Debug:%s", BuildConfig.DEBUG);
         generateFirebaseToken();
         myWorkManager.startIfNeeded();
     }

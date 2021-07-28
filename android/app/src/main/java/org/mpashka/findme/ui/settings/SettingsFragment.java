@@ -40,7 +40,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
     public void onDestroy() {
         super.onDestroy();
-        Timber.d("Fragment1 onDestroy");
+        Timber.i("Fragment1 onDestroy");
         getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
     }
 
@@ -62,22 +62,22 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 /*
     public void onStart() {
         super.onStart();
-        Timber.d("Fragment1 onStart");
+        Timber.i("Fragment1 onStart");
     }
 
     public void onStop() {
         super.onStop();
-        Timber.d("Fragment1 onStop");
+        Timber.i("Fragment1 onStop");
     }
 
     public void onDestroyView() {
         super.onDestroyView();
-        Timber.d("Fragment1 onDestroyView");
+        Timber.i("Fragment1 onDestroyView");
     }
 
     public void onDetach() {
         super.onDetach();
-        Timber.d("Fragment1 onDetach");
+        Timber.i("Fragment1 onDetach");
     }
 */
 }

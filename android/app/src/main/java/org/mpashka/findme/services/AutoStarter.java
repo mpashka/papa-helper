@@ -21,7 +21,7 @@ public class AutoStarter extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        Timber.d("onReceive %s, user unlocked: %s", action, UserManagerCompat.isUserUnlocked(context));
+        Timber.i("onReceive %s, user unlocked: %s", action, UserManagerCompat.isUserUnlocked(context));
         if (Intent.ACTION_LOCKED_BOOT_COMPLETED.equals(action)) {
             myWorkManager.startIfNeeded();
         } else if (Intent.ACTION_BOOT_COMPLETED.equals(action)) {

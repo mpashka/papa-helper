@@ -45,14 +45,14 @@ public class MiBandManager {
 //        if (prevSteps > 0 && miBandInfo.getSteps() != prevSteps) {
 //            return Single.just(miBandInfo);
 //        }
-        Timber.d("Request heart rate since prev steps %s are zero or same %s", prevSteps, miBandInfo.getSteps());
+        Timber.i("Request heart rate since prev steps %s are zero or same %s", prevSteps, miBandInfo.getSteps());
         return miBand.heartRateSubscribe()
                 .flatMapMaybe(rate -> miBandInfo.addHeartRate(miBandInfo.heartRateCount)
                         ? Maybe.just(miBandInfo.getHeartRate())
                         : Maybe.empty())
                 .timeout(HEART_RATE_TIMEOUT, TimeUnit.SECONDS)
                 .onErrorReturn(e -> {
-                    Timber.d(e, "Heart rate timeout occurred. Return current value %s", miBandInfo.getHeartRate());
+                    Timber.i(e, "Heart rate timeout occurred. Return current value %s", miBandInfo.getHeartRate());
                     return miBandInfo.getHeartRate();
                 })
                 .map(i -> miBandInfo)

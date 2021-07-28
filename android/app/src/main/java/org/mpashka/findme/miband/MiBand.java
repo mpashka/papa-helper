@@ -135,10 +135,10 @@ public class MiBand {
 
     public void init(RxBleClient bleClient, String address) {
         device = bleClient.getBleDevice(address);
-        Timber.d("Name: %s", device.getName());
+        Timber.i("Name: %s", device.getName());
 
         stateDisposable = device.observeConnectionStateChanges()
-                .subscribe(s -> Timber.d("State changed: %s", s));
+                .subscribe(s -> Timber.i("State changed: %s", s));
     }
 
     public Observable<RxBleConnection> connect() {
@@ -147,11 +147,11 @@ public class MiBand {
         return device.establishConnection(false)
                 .doOnSubscribe(d -> stateDisposable = d)
                 .doOnNext(c -> {
-                    Timber.d("Connection established");
+                    Timber.i("Connection established");
                     connection = c;
                 })
                 .doFinally(() -> {
-                    Timber.d("Connection finally called");
+                    Timber.i("Connection finally called");
                 })
 
                 .flatMap(i -> setupNotification(UUID_CHARACTERISTIC_DEVICEEVENT, o -> compositeDisposable.add(o.subscribe(this::handleDeviceEvent))))
@@ -176,34 +176,34 @@ public class MiBand {
     }
 
     private Single<byte[]> read(UUID characteristicUuid) {
-        Timber.d("Reading [%s]...", characteristicUuid);
+        Timber.i("Reading [%s]...", characteristicUuid);
         return connection.readCharacteristic(characteristicUuid)
                 .onErrorResumeNext(e -> {
                     if (e instanceof BleGattCharacteristicException && ((BleGattCharacteristicException) e).getStatus() == GATT_READ_NOT_PERMIT) {
-                        Timber.d("Write error. Auth required");
+                        Timber.i("Write error. Auth required");
                         return auth()
                                 .firstOrError()
                                 .flatMap(i -> connection.readCharacteristic(characteristicUuid));
                     }
                     return Single.error(e);
                 })
-                .doOnSuccess(bytes -> Timber.d("Read [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)));
+                .doOnSuccess(bytes -> Timber.i("Read [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)));
     }
 
     private Single<byte[]> write(UUID characteristicUuid, byte[] bytes) {
-        Timber.d("Writing [%s]: %s...", characteristicUuid, bytesToHex(bytes));
+        Timber.i("Writing [%s]: %s...", characteristicUuid, bytesToHex(bytes));
         return connection.writeCharacteristic(characteristicUuid, bytes)
                 .onErrorResumeNext(e -> {
                     if (characteristicUuid != UUID_CHARACTERISTIC_AUTH && e instanceof BleGattCharacteristicException
                             && ((BleGattCharacteristicException) e).getStatus() == GATT_WRITE_NOT_PERMIT) {
-                        Timber.d("Write error. Auth required");
+                        Timber.i("Write error. Auth required");
                         return auth()
                                 .firstOrError()
                                 .flatMap(i -> connection.writeCharacteristic(characteristicUuid, bytes));
                     }
                     return Single.error(e);
                 })
-                .doOnSuccess(data -> Timber.d("Write [%s] bytes result: %s", characteristicUuid, bytesToHex(bytes)));
+                .doOnSuccess(data -> Timber.i("Write [%s] bytes result: %s", characteristicUuid, bytesToHex(bytes)));
     }
 
     public Observable<Observable<byte[]>> setupNotification(UUID characteristicUuid, Consumer<Observable<byte[]>> notificationObserver) {
@@ -212,11 +212,11 @@ public class MiBand {
 
     public <T> Observable<Observable<byte[]>> setupNotification(UUID characteristicUuid, ObservableTransformer<byte[], T> transformer, Consumer<Observable<T>> notificationObserver) {
         return connection.setupNotification(characteristicUuid)
-                .doOnNext(observable -> Timber.d("Notifications subscribe for [%s]", characteristicUuid))
+                .doOnNext(observable -> Timber.i("Notifications subscribe for [%s]", characteristicUuid))
                 .doOnNext(observable -> notificationObserver.accept(observable
-                        .doOnNext(bytes -> Timber.d("Notify [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)))
+                        .doOnNext(bytes -> Timber.i("Notify [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)))
                         .compose(transformer)
-                        .doOnNext(data -> Timber.d("Notify [%s] object: %s", characteristicUuid, data))
+                        .doOnNext(data -> Timber.i("Notify [%s] object: %s", characteristicUuid, data))
                 ));
     }
 
@@ -226,23 +226,23 @@ public class MiBand {
     {
         Observable<Observable<byte[]>> notificationObservable = connection.setupNotification(characteristicUuid);
         return notificationObservable
-                .doOnNext(o -> Timber.d("Notifications subscribe for [%s]", characteristicUuid))
+                .doOnNext(o -> Timber.i("Notifications subscribe for [%s]", characteristicUuid))
                 .flatMapSingle(action)
                 .flatMap(i -> notificationObservable)
                 .flatMap(observable -> observable
-                        .doOnNext(bytes -> Timber.d("Notify [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)))
+                        .doOnNext(bytes -> Timber.i("Notify [%s] bytes: %s", characteristicUuid, bytesToHex(bytes)))
                 )
                 .compose(transformer)
-                .doOnNext(data -> Timber.d("Notify [%s] object: %s", characteristicUuid, data));
+                .doOnNext(data -> Timber.i("Notify [%s] object: %s", characteristicUuid, data));
     }
 
     public Observable<Boolean> auth() {
-        Timber.d("Start auth");
+        Timber.i("Start auth");
         return setupNotificationFlow(UUID_CHARACTERISTIC_AUTH,
                 o -> sendAuth(),
                 o -> o)
                 .flatMapMaybe(this::handleAuth)
-                .doOnNext(a -> Timber.d("Authenticated %s", a));
+                .doOnNext(a -> Timber.i("Authenticated %s", a));
     }
 
     public Single<byte[]> sendAuth() {
@@ -259,14 +259,14 @@ public class MiBand {
     }
 
     public Maybe<Boolean> handleAuth(byte[] value) throws NoSuchAlgorithmException, BadPaddingException, NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException {
-        Timber.d("Received characteristic auth");
+        Timber.i("Received characteristic auth");
         if (value[0] != AUTH_RESPONSE) {
-            Timber.d("Unknown auth request");
+            Timber.i("Unknown auth request");
             return Maybe.empty();
         }
 
         if (value[1] == AUTH_SEND_KEY && value[2] == AUTH_SUCCESS) {
-            Timber.d("Sending the secret key to the device");
+            Timber.i("Sending the secret key to the device");
             return write(UUID_CHARACTERISTIC_AUTH, requestAuthNumber())
                     .flatMapMaybe(i -> Maybe.empty());
         } else if ((value[1] & 0x0f) == AUTH_REQUEST_RANDOM_AUTH_NUMBER && value[2] == AUTH_SUCCESS) {
@@ -275,16 +275,16 @@ public class MiBand {
             responseValue[0] = (byte) (AUTH_SEND_ENCRYPTED_AUTH_NUMBER | cryptFlags);
             responseValue[1] = authFlags;
             System.arraycopy(eValue, 0, responseValue, 2, eValue.length);
-            Timber.d("Sending the encrypted random key to the device");
+            Timber.i("Sending the encrypted random key to the device");
             return write(UUID_CHARACTERISTIC_AUTH, responseValue)
                     .flatMapMaybe(i -> Maybe.empty());
 //                        huamiSupport.setCurrentTimeWithService(builder);
         } else if ((value[1] & 0x0f) == AUTH_SEND_ENCRYPTED_AUTH_NUMBER && value[2] == AUTH_SUCCESS) {
-            Timber.d("Authenticated");
+            Timber.i("Authenticated");
 //            authObservable.onNext(true);
             return Maybe.just(true);
         } else {
-            Timber.d("Unknown auth response request");
+            Timber.i("Unknown auth response request");
         }
         return Maybe.empty();
     }
@@ -316,27 +316,27 @@ public class MiBand {
 
 
     public Single<Integer> readBatteryInfo() {
-        Timber.d("Reading Battery Info");
+        Timber.i("Reading Battery Info");
         return read(UUID_CHARACTERISTIC_6_BATTERY_INFO)
                 .map(value -> {
                     int level = value.length >=2 ? value[1] : 50;
-                    Timber.d("Charge level: %s", level);
+                    Timber.i("Charge level: %s", level);
                     if (value.length >= 3) {
                         switch (value[2]) {
                             case 0:
-                                Timber.d("Charge normal");
+                                Timber.i("Charge normal");
                                 break;
                             case 1:
-                                Timber.d("Charging");
+                                Timber.i("Charging");
                                 break;
                             default:
-                                Timber.d("Charging unknown: %s", value[2]);
+                                Timber.i("Charging unknown: %s", value[2]);
                                 break;
                         }
                     }
                     if (value.length >= 18) {
                         Calendar lastCharge = rawBytesToCalendar(value, 11);
-                        Timber.d("Last charge: %s", lastCharge);
+                        Timber.i("Last charge: %s", lastCharge);
                     }
                     return level;
                 });
@@ -386,21 +386,21 @@ public class MiBand {
         return setupNotification(UUID_CHARACTERISTIC_3_CONFIGURATION, o -> o
                 .subscribe(value -> {
                     if (value == null || value.length < 4) {
-                        Timber.d("Unknown characteristic %s", bytesToHex(value));
+                        Timber.i("Unknown characteristic %s", bytesToHex(value));
                         return;
                     }
                     if (value[0] == 0x10 && value[2] == 0x01) {
                         if (value[1] == 0x0e) {
                             String gpsVersion = new String(value, 3, value.length - 3);
-                            Timber.d("got gps version = %s", gpsVersion);
+                            Timber.i("got gps version = %s", gpsVersion);
                         } else if (value[1] == 0x0d) {
-                            Timber.d("got alarms from watch");
+                            Timber.i("got alarms from watch");
                             decodeAndUpdateAlarmStatus(value);
                         } else {
-                            Timber.d("got configuration info we do not handle yet %s", bytesToHex(value));
+                            Timber.i("got configuration info we do not handle yet %s", bytesToHex(value));
                         }
                     } else {
-                        Timber.d("error received from configuration request %s", bytesToHex(value));
+                        Timber.i("error received from configuration request %s", bytesToHex(value));
                     }
                 })
         );
@@ -413,11 +413,11 @@ public class MiBand {
             byte alarm_data = response[9 + i];
             int index = alarm_data & 0xf;
             if (index >= maxAlarms) {
-                Timber.d("Unexpected alarm index from device, ignoring: %s", index);
+                Timber.i("Unexpected alarm index from device, ignoring: %s", index);
                 return;
             }
             boolean enabled = (alarm_data & 0x10) == 0x10;
-            Timber.d("alarm %s is enabled: %s", index, enabled);
+            Timber.i("alarm %s is enabled: %s", index, enabled);
         }
     }
 
@@ -434,7 +434,7 @@ public class MiBand {
                         // 6 for mi band hz
                         // 0 for mi band 2
                         int heartRate = data[1] & 0xFF;
-                        Timber.d("Heart rate %s", heartRate);
+                        Timber.i("Heart rate %s", heartRate);
                         return heartRate;
 //                        observer.onNext(heartRate);
 //                        listener.onNotify(heartRate);
@@ -446,7 +446,7 @@ public class MiBand {
 
     public Single<byte[]> heartRateScan() {
         return write(UUID_CHAR_HEARTRATE, START_HEART_RATE_SCAN)
-                .doOnSuccess(data -> Timber.d("Start scan success %s", Arrays.equals(data, START_HEART_RATE_SCAN)));
+                .doOnSuccess(data -> Timber.i("Start scan success %s", Arrays.equals(data, START_HEART_RATE_SCAN)));
     }
 
     /**
@@ -488,9 +488,9 @@ public class MiBand {
                     if (value.length == 13) {
 //                        byte[] stepsValue = new byte[] {value[1], value[2]};
                         steps = (value[1] & 0xff) | ((value[2] & 0xff) << 8);
-                        Timber.d("realtime steps: %s", steps);
+                        Timber.i("realtime steps: %s", steps);
                     } else {
-                        Timber.d("Unrecognized realtime steps value: %s", bytesToHex(value));
+                        Timber.i("Unrecognized realtime steps value: %s", bytesToHex(value));
                     }
                     return steps;
                 });
@@ -535,53 +535,53 @@ public class MiBand {
 
         switch (value[0]) {
             case CALL_REJECT:
-                Timber.d("call rejected");
+                Timber.i("call rejected");
 //                callCmd.event = GBDeviceEventCallControl.Event.REJECT;
                 break;
             case CALL_IGNORE:
-                Timber.d("call ignored");
+                Timber.i("call ignored");
 //                callCmd.event = GBDeviceEventCallControl.Event.IGNORE;
                 break;
             case BUTTON_PRESSED:
-                Timber.d("button pressed");
+                Timber.i("button pressed");
 //                handleButtonEvent();
                 break;
             case BUTTON_PRESSED_LONG:
-                Timber.d("button long-pressed ");
+                Timber.i("button long-pressed ");
 //                handleLongButtonEvent();
                 break;
             case START_NONWEAR:
-                Timber.d("non-wear start detected");
+                Timber.i("non-wear start detected");
 //                processDeviceEvent(HuamiDeviceEvent.START_NONWEAR);
                 break;
             case ALARM_TOGGLED:
-                Timber.d("An alarm was toggled");
+                Timber.i("An alarm was toggled");
 //                requestAlarms(builder);
                 break;
             case FELL_ASLEEP:
-                Timber.d("Fell asleep");
+                Timber.i("Fell asleep");
 //                processDeviceEvent(HuamiDeviceEvent.FELL_ASLEEP);
                 break;
             case WOKE_UP:
-                Timber.d("Woke up");
+                Timber.i("Woke up");
 //                processDeviceEvent(HuamiDeviceEvent.WOKE_UP);
                 break;
             case STEPSGOAL_REACHED:
-                Timber.d("Steps goal reached");
+                Timber.i("Steps goal reached");
                 break;
             case TICK_30MIN:
-                Timber.d("Tick 30 min (?)");
+                Timber.i("Tick 30 min (?)");
                 break;
             case FIND_PHONE_START:
-                Timber.d("find phone started");
+                Timber.i("find phone started");
 //                findPhoneEvent.event = GBDeviceEventFindPhone.Event.START;
                 break;
             case FIND_PHONE_STOP:
-                Timber.d("find phone stopped");
+                Timber.i("find phone stopped");
 //                findPhoneEvent.event = GBDeviceEventFindPhone.Event.STOP;
                 break;
             case MUSIC_CONTROL:
-                Timber.d("got music control ");
+                Timber.i("got music control ");
 /*
                 GBDeviceEventMusicControl deviceEventMusicControl = new GBDeviceEventMusicControl();
 
@@ -621,9 +621,9 @@ public class MiBand {
                 break;
             case MTU_REQUEST:
                 int mtu = (value[2] & 0xff) << 8 | value[1] & 0xff;
-                Timber.d("device announced MTU of %s", mtu);
+                Timber.i("device announced MTU of %s", mtu);
                 if (mtu < 23) {
-                    Timber.d("Device announced unreasonable low MTU of " + mtu + ", ignoring");
+                    Timber.i("Device announced unreasonable low MTU of " + mtu + ", ignoring");
                     break;
                 }
                 /*
@@ -637,32 +637,32 @@ public class MiBand {
                 */
                 break;
             default:
-                Timber.d("unhandled event %s", value[0]);
+                Timber.i("unhandled event %s", value[0]);
         }
     }
 
     private void showDiscoveredServices(RxBleDeviceServices s) {
-        Timber.d("Discover services result");
+        Timber.i("Discover services result");
         for (BluetoothGattService service : s.getBluetoothGattServices()) {
-            Timber.d("    Svc: %s", service.getUuid());
+            Timber.i("    Svc: %s", service.getUuid());
             List<BluetoothGattService> includedServices = service.getIncludedServices();
             if (!includedServices.isEmpty()) {
-                Timber.d("        Included");
+                Timber.i("        Included");
                 for (BluetoothGattService includedService : includedServices) {
-                    Timber.d("            Svc: %s", includedService.getUuid());
+                    Timber.i("            Svc: %s", includedService.getUuid());
                 }
             }
             List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
             if (!characteristics.isEmpty()) {
-                Timber.d("        Characteristics");
+                Timber.i("        Characteristics");
                 for (BluetoothGattCharacteristic characteristic : characteristics) {
-                    Timber.d("            %s. Perm: %s, instID: %s, props: %s, wrType: %s", characteristic.getUuid(),
+                    Timber.i("            %s. Perm: %s, instID: %s, props: %s, wrType: %s", characteristic.getUuid(),
                             characteristic.getPermissions(), characteristic.getInstanceId(), characteristic.getProperties(), characteristic.getWriteType());
                     List<BluetoothGattDescriptor> characteristicDescriptors = characteristic.getDescriptors();
                     if (!characteristicDescriptors.isEmpty()) {
-                        Timber.d("            Descriptors");
+                        Timber.i("            Descriptors");
                         for (BluetoothGattDescriptor characteristicDescriptor : characteristicDescriptors) {
-                            Timber.d("                Descriptor: %s, permissions: %s", characteristicDescriptor.getUuid(),
+                            Timber.i("                Descriptor: %s, permissions: %s", characteristicDescriptor.getUuid(),
 //                                    characteristicDescriptor.getInstanceId(),
                                     characteristicDescriptor.getPermissions());
                         }

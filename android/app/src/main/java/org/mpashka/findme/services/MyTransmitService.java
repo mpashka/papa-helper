@@ -24,6 +24,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
+import io.reactivex.SingleObserver;
+import io.reactivex.SingleSource;
 import io.reactivex.SingleTransformer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
@@ -63,13 +65,13 @@ public class MyTransmitService {
     }
 
     public void createApi() {
-        Timber.d("Create save API");
+        Timber.i("Create save API");
         saveApi = createRetrofitClient()
                 .create(SaveApi.class);
     }
 
     public Single<SaveEntity> checkAndTransmitLocations(LocationEntity lastLocation) {
-        Timber.d("transmitLocations()");
+        Timber.i("transmitLocations()");
 
         NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null &&
@@ -77,18 +79,18 @@ public class MyTransmitService {
         int sendSec = preferences.getInt(R.string.send_interval_id, R.integer.send_interval_default);
         long now = System.currentTimeMillis();
         if (!isConnected) {
-            Timber.d("not connected! Saving to the database");
+            Timber.i("not connected! Saving to the database");
             return saveToLocal(lastLocation);
         } else if (now < state.getLastTransmitTime() + sendSec * 1000) {
-            Timber.d("Not enough time passed! Saving to the database");
+            Timber.i("Not enough time passed! Saving to the database");
             return saveToLocal(lastLocation);
         } else if (state.getPending() == 0) {
-            Timber.d("Sending single location");
+            Timber.i("Sending single location");
             SaveEntity saveEntity = new SaveEntity()
                     .setLocations(Collections.singletonList(lastLocation));
             return transmit(lastLocation, saveEntity);
         } else {
-            Timber.d("Sending %s pending location + last", state.getPending());
+            Timber.i("Sending %s pending location + last", state.getPending());
             return Single.just(new SaveEntity())
                     .compose(loadPending(lastLocation))
                     .flatMap(saveEntity -> transmit(lastLocation, saveEntity));
@@ -98,10 +100,10 @@ public class MyTransmitService {
     private SingleTransformer<SaveEntity, SaveEntity> loadPending(LocationEntity lastLocation) {
         return s -> s
                 .flatMap(saveEntity -> {
-                    Timber.d("Loading pending locations...");
+                    Timber.i("Loading pending locations...");
                     return locationDao.loadPending()
                             .map(locations -> {
-                                Timber.d("Locations loaded %s", locations.size());
+                                Timber.i("Locations loaded %s", locations.size());
                                 for (LocationEntity location : locations) {
                                     location.setSaved(true);
                                 }
@@ -138,7 +140,7 @@ public class MyTransmitService {
                 .retry(retry)
                 .toSingleDefault(saveEntity)
                 .flatMap(v -> {
-                    Timber.d("Transmitted successfully. Updating db.");
+                    Timber.i("Transmitted successfully. Updating db.");
                     state.onTransmit(saveEntity.getLocations().size());
                     List<LocationEntity> locations = saveEntity.getLocations();
                     List<Long> pendingTransmittedIds = new ArrayList<>(locations.size() - 1);
@@ -159,7 +161,7 @@ public class MyTransmitService {
     }
 
     private Retrofit createRetrofitClient() {
-        Timber.d("Reload retrofit");
+        Timber.i("Reload retrofit");
         OkHttpClient.Builder client = new OkHttpClient.Builder();
         if (preferences.getBoolean(R.string.send_debug_http_id, R.bool.send_debug_http_default)) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();

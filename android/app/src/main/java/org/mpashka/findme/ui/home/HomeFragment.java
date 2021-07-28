@@ -75,14 +75,14 @@ public class HomeFragment extends Fragment {
                 .subscribe());
 
         root.findViewById(R.id.home_locate).setOnClickListener(v -> {
-            Timber.d("Home.locate");
+            Timber.i("Home.locate");
             workManager.fetchCurrentLocation();
         });
         root.findViewById(R.id.home_send).setOnClickListener(v -> {
-            Timber.d("Home.send");
+            Timber.i("Home.send");
             transmitService.transmitPending()
                     .subscribeOn(Schedulers.io())
-                    .subscribe(saveEntity -> Timber.d("Entity saved"),
+                    .subscribe(saveEntity -> Timber.i("Entity saved"),
                             e -> Timber.w(e, "Entity save error"));
         });
 

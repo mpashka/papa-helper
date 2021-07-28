@@ -38,7 +38,7 @@ public class MyHiltModule {
     @Provides
     @Singleton
     public MyDb myDb(@ApplicationContext Context applicationContext) {
-        Timber.d("myDb()");
+        Timber.i("myDb()");
         Context deviceContext = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
                 ? applicationContext.createDeviceProtectedStorageContext()
                 : applicationContext;
@@ -85,7 +85,7 @@ public class MyHiltModule {
 
         RxJavaPlugins.setErrorHandler(throwable -> {
             if (throwable instanceof UndeliverableException && throwable.getCause() instanceof BleException) {
-                Timber.d(throwable, "Suppressed UndeliverableException");
+                Timber.i(throwable, "Suppressed UndeliverableException");
                 return; // ignore BleExceptions as they were surely delivered at least once
             }
             // add other custom handlers if needed
