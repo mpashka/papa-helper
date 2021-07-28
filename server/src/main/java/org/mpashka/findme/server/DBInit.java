@@ -33,7 +33,6 @@ public class DBInit {
         log.debug("Init database...");
         try {
             LocationEntity.init(client);
-            AccelerometerEntity.init(client);
         } catch (Exception e) {
             log.error("Db init error", e);
         }

@@ -18,14 +18,13 @@ public class MyService {
     @Inject
     PgPool client;
 
-    public Uni<Void> saveEntity(SaveEntity saveEntity) {
+    public Uni<?> saveEntity(SaveEntity saveEntity) {
         log.debug("Add {}", saveEntity);
-        return saveLocations(saveEntity.getLocations()).onItem()
-                .transformToUni(l -> saveAccelerations(saveEntity.getAccelerations()))
+        return saveLocations(saveEntity.getLocations())
                 .onItem().invoke(l -> log.debug("All saved"));
     }
 
-    private Uni<Void> saveLocations(List<LocationEntity> locationEntities) {
+    private Uni<?> saveLocations(List<LocationEntity> locationEntities) {
         if (locationEntities == null || locationEntities.isEmpty()) {
             log.debug("No locations");
             return Uni.createFrom().voidItem();
@@ -33,19 +32,6 @@ public class MyService {
         return Multi.createFrom().iterable(locationEntities).onItem()
                 .transformToUni(l -> l.save(client))
                 .merge().collect().asList()
-                .onItem().invoke(l -> log.debug("Locations saved"))
-                .map(l -> null);
-    }
-
-    private Uni<Void> saveAccelerations(List<AccelerometerEntity> accelerometerEntities) {
-        if (accelerometerEntities == null || accelerometerEntities.isEmpty()) {
-            log.debug("No accelerations");
-            return Uni.createFrom().voidItem();
-        }
-        return Multi.createFrom().iterable(accelerometerEntities).onItem()
-                .transformToUni(l -> l.save(client))
-                .merge().collect().asList()
-                .onItem().invoke(l -> log.debug("Accelerations saved"))
-                .map(l -> null);
+                .invoke(l -> log.debug("Locations saved"));
     }
 }

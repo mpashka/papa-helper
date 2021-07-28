@@ -6,15 +6,27 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.StreamSupport;
 
 public class LocationEntity {
 
+    private static final Logger log = LoggerFactory.getLogger(LocationEntity.class);
+
+    @JsonProperty("work_time")
+    public long workTime;
+
+    @JsonProperty("work_provider")
+    public String workProvider;
+
     @JsonProperty("time")
     public long time;
+
+    @JsonProperty("provider")
+    public String provider;
 
     @JsonProperty("lat")
     public double latitude;
@@ -37,11 +49,29 @@ public class LocationEntity {
     @JsonProperty("mi_heart")
     public int miHeart;
 
+    @JsonProperty("accel_avg")
+    public double accelerometerAverage;
+
+    @JsonProperty("accel_max")
+    public double accelerometerMaximum;
+
+    @JsonProperty("accel_count")
+    public int accelerometerCount;
+
+    @JsonProperty("activity")
+    public int activity;
+
     public LocationEntity() {
     }
 
-    public LocationEntity(long time, double latitude, double longitude, double accuracy, int battery, int miBattery, int miSteps, int miHeart) {
+    public LocationEntity(long workTime, String workProvider, long time, String provider, double latitude,
+                          double longitude, double accuracy, int battery, int miBattery, int miSteps, int miHeart,
+                          double accelerometerAverage, double accelerometerMaximum, int accelerometerCount,
+                          int activity) {
+        this.workTime = workTime;
         this.time = time;
+        this.workProvider = workProvider;
+        this.provider = provider;
         this.latitude = latitude;
         this.longitude = longitude;
         this.accuracy = accuracy;
@@ -49,40 +79,60 @@ public class LocationEntity {
         this.miBattery = miBattery;
         this.miSteps = miSteps;
         this.miHeart = miHeart;
+        this.accelerometerAverage = accelerometerAverage;
+        this.accelerometerMaximum = accelerometerMaximum;
+        this.accelerometerCount = accelerometerCount;
+        this.activity = activity;
     }
 
     public static void init(PgPool client) {
         Uni.createFrom().item(1)
 //                .flatMap(u -> client.query("DROP TABLE IF EXISTS location").execute())
                 .flatMap(r -> client.query("CREATE TABLE IF NOT EXISTS location (" +
-                        "time NUMERIC PRIMARY KEY, " +
+                        "work_time NUMERIC PRIMARY KEY, " +
+                        "work_provider VARCHAR(10), " +
+                        "time NUMERIC NOT NULL, " +
+                        "provider VARCHAR(10), " +
                         "lat NUMERIC(14,11) NOT NULL, " +
                         "long NUMERIC(14,11) NOT NULL, " +
                         "accuracy NUMERIC(6,3) NOT NULL," +
-                        "battery NUMERIC," +
-                        "mi_battery NUMERIC," +
-                        "mi_steps NUMERIC," +
-                        "mi_heart NUMERIC" +
+                        "battery NUMERIC NOT NULL," +
+                        "mi_battery NUMERIC NOT NULL," +
+                        "mi_steps NUMERIC NOT NULL," +
+                        "mi_heart NUMERIC NOT NULL," +
+                        "accel_avg NUMERIC(6,3) NOT NULL," +
+                        "accel_max NUMERIC(6,3) NOT NULL," +
+                        "accel_count NUMERIC NOT NULL," +
+                        "activity NUMERIC NOT NULL" +
                         ")").execute())
                 .await().indefinitely();
     }
 
     private static LocationEntity from(Row row) {
-        return new LocationEntity(row.getLong("time"),
+        return new LocationEntity(
+                row.getLong("work_time"),
+                row.getString("work_provider"),
+                row.getLong("time"),
+                row.getString("provider"),
                 row.getDouble("lat"),
                 row.getDouble("long"),
                 row.getDouble("accuracy"),
                 row.getInteger("battery"),
-                Optional.ofNullable(row.getInteger("mi_battery")).orElse(-1),
-                Optional.ofNullable(row.getInteger("mi_steps")).orElse(-1),
-                Optional.ofNullable(row.getInteger("mi_heart")).orElse(-1)
+                row.getInteger("mi_battery"),
+                row.getInteger("mi_steps"),
+                row.getInteger("mi_heart"),
+                row.getDouble("accel_avg"),
+                row.getDouble("accel_max"),
+                row.getInteger("accel_count"),
+                row.getInteger("activity")
                 );
     }
 
     public static Multi<LocationEntity> findAll(PgPool client, long start, long stop) {
-        return client.preparedQuery("SELECT time, lat, long, accuracy, battery, mi_battery, mi_steps, mi_heart " +
+        return client.preparedQuery("SELECT work_time, work_provider, time, provider, lat, long, accuracy, battery, " +
+                "   mi_battery, mi_steps, mi_heart, accel_avg, accel_max, accel_count, activity " +
                 "FROM location " +
-                "WHERE time >= $1 and time <= $2" +
+                "WHERE work_time >= $1 and work_time <= $2" +
                 "ORDER BY time ASC")
                 .execute(Tuple.of(start, stop))
                 // Create a Multi from the set of rows:
@@ -91,10 +141,13 @@ public class LocationEntity {
                 .onItem().transform(LocationEntity::from);
     }
 
-    public Uni<Void> save(PgPool client) {
-        return client.preparedQuery("INSERT INTO location (time, lat, long, accuracy, battery, mi_battery, mi_steps, mi_heart) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)")
-                .execute(Tuple.tuple(List.of(time, latitude, longitude, accuracy, battery, miBattery, miSteps, miHeart)))
-                .onItem().transform(i -> null);
+    public Uni<?> save(PgPool client) {
+        return client.preparedQuery("INSERT INTO location (work_time, work_provider, time, provider, lat, long, accuracy, battery, " +
+                "   mi_battery, mi_steps, mi_heart, accel_avg, accel_max, accel_count, activity) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)")
+                .execute(Tuple.tuple(List.of(workTime, workProvider, time, provider, latitude, longitude, accuracy, battery,
+                        miBattery, miSteps, miHeart, accelerometerAverage, accelerometerMaximum, accelerometerCount, activity)))
+                .onFailure().invoke(e -> log.warn("Save location error", e))
+                .onFailure().recoverWithNull();
         /*
         return client.preparedQuery("INSERT INTO fruits (name) VALUES ($1) RETURNING (id)").execute(Tuple.of(name))
                 .onItem().transform(pgRowSet -> pgRowSet.iterator().next().getLong("id"));
@@ -104,7 +157,10 @@ public class LocationEntity {
     @Override
     public String toString() {
         return "LocationEntity{" +
-                "time=" + time +
+                "workTime=" + workTime +
+                ", workProvider='" + workProvider + '\'' +
+                ", time=" + time +
+                ", provider='" + provider + '\'' +
                 ", latitude=" + latitude +
                 ", longitude=" + longitude +
                 ", accuracy=" + accuracy +
@@ -112,6 +168,10 @@ public class LocationEntity {
                 ", miBattery=" + miBattery +
                 ", miSteps=" + miSteps +
                 ", miHeart=" + miHeart +
+                ", accelerometerAverage=" + accelerometerAverage +
+                ", accelerometerMaximum=" + accelerometerMaximum +
+                ", accelerometerCount=" + accelerometerCount +
+                ", activity=" + activity +
                 '}';
     }
 }

@@ -15,8 +15,9 @@ create user quarkus_test with encrypted password 'quarkus_test';
 grant all privileges on database quarkus_test to quarkus_test;
 
 docker exec -it papa-postgresql psql
-\c papa_helper
-\td
+\c papa_helper # connect to db
+\dt            # Show tables
+\dt+ 
 ```
 
 flutter
@@ -42,6 +43,7 @@ You can run your application in dev mode that enables live coding using:
 The application can be packaged using:
 ```shell script
 ./mvnw package
+./mvnw package && docker build -f src/main/docker/Dockerfile.jvm -t mpashka/papa-helper.server:jvm-alpha1 . && docker push mpashka/papa-helper.server:jvm-alpha1
 ```
 It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
 Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
